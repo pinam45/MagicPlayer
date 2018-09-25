@@ -25,7 +25,7 @@
 include(CheckCXXCompilerFlag)
 include(CheckCCompilerFlag)
 
-## check_variable_name(function_name var_names... [USED used_var_names...])
+## check_variable_name(function_name var_names... USED used_var_names...)
 # Check if variables passed to a function don't have names conflicts with variables used in the function.
 # Generate a fatal error on variable name conflict.
 #   {value} [in] function_name:    Function name
@@ -355,13 +355,13 @@ function(target_add_system_includes target)
 	target_include_directories(${target} SYSTEM PRIVATE ${ARGN})
 endfunction()
 
-## target_add_flag(target flag [configs...])
+## target_add_compiler_flag(target flag [configs...])
 # Add a flag to the compiler arguments of the target for the specified configs.
-# Add the flag only if the compiler support it (checked with CHECK_CXX_COMPILER_FLAG)
+# Add the flag only if the compiler support it (checked with CHECK_CXX_COMPILER_FLAG).
 #   {value} [in] target:    Target to add flag
 #   {value} [in] flag:      Flag to add
 #   {value} [in] configs:   Configs for the property to change (DEBUG|RELEASE|RELWITHDEBINFO)
-function(target_add_flag target flag)
+function(target_add_compiler_flag target flag)
 	CHECK_CXX_COMPILER_FLAG(${flag} has${flag})
 	if(has${flag})
 		if(${ARGC} GREATER 2)
@@ -380,6 +380,73 @@ function(target_add_flag target flag)
 			endforeach()
 		else()
 			target_compile_options(${target} PRIVATE "${flag}")
+		endif()
+	endif()
+endfunction()
+
+## append_to_target_property(target property [values...])
+# Append values to a target property.
+#   {value} [in] target:     Target to modify
+#   {value} [in] property:   Property to append values to
+#   {value} [in] values:     Values to append to the property
+function(append_to_target_property target property)
+	set(new_values ${ARGN})
+	get_target_property(existing_values ${target} ${property})
+	if(existing_values)
+		set(new_values "${existing_values} ${new_values}")
+	endif()
+	set_target_properties(${target} PROPERTIES ${property} ${new_values})
+endfunction()
+
+## __target_link_flag_property(target flag  [configs...])
+# Add a flag to the linker arguments of the target for the specified configs using LINK_FLAGS properties of the target.
+# Function made for CMake 3.12 or less, future CMake version will have target_link_options() with cmake-generator-expressions.
+#   {value} [in] target:    Target to add flag
+#   {value} [in] flag:      Flag to add
+#   {value} [in] configs:   Configs for the property to change (DEBUG|RELEASE|RELWITHDEBINFO)
+function(__target_link_flag_property target flag)
+	if(${ARGC} GREATER 2)
+		foreach(config ${ARGN})
+			append_to_target_property(${target} LINK_FLAGS_${config} ${flag})
+		endforeach()
+	else()
+		append_to_target_property(${target} LINK_FLAGS ${flag})
+	endif()
+endfunction()
+
+## target_add_linker_flag(target flag [configs...])
+# Add a flag to the linker arguments of the target for the specified configs.
+# Add the flag only if the linker support it (checked with CHECK_CXX_COMPILER_FLAG).
+#   {value} [in] target:    Target to add flag
+#   {value} [in] flag:      Flag to add
+#   {value} [in] configs:   Configs for the property to change (DEBUG|RELEASE|RELWITHDEBINFO)
+function(target_add_linker_flag target flag)
+	CHECK_CXX_COMPILER_FLAG(${flag} has${flag})
+	if(has${flag})
+		if(${ARGC} GREATER 2)
+			foreach(config ${ARGN})
+				string(TOLOWER "${config}" config_lower)
+				set(config_name)
+				foreach(valid_config IN ITEMS "Debug" "RelWithDebInfo" "Release")
+					string(TOLOWER "${valid_config}" valid_config_lower)
+					if(${config_lower} STREQUAL ${valid_config_lower})
+						set(config_name ${valid_config})
+					endif()
+				endforeach()
+				if(DEFINED config_name)
+					if(COMMAND target_link_options)
+						target_link_options(${target} PRIVATE "$<$<CONFIG:${config_name}>:${flag}>")
+					else()
+						__target_link_flag_property(${target} ${flag} ${config_name})
+					endif()
+				endif()
+			endforeach()
+		else()
+			if(COMMAND target_link_options)
+				target_link_options(${target} PRIVATE "${flag}")
+			else()
+				__target_link_flag_property(${target} "${flag}")
+			endif()
 		endif()
 	endif()
 endfunction()
@@ -446,13 +513,47 @@ function(setup_msvc target)
 	has_item(option_no_warnings "no_warnings" ${options})
 	has_item(option_low_warnings "low_warnings" ${options})
 
+	# enable parallel compilation
+	target_add_compiler_flag(${target} "/MP")
+
+	# generates complete debugging information
+	target_add_compiler_flag(${target} "/Zi" DEBUG RELWITHDEBINFO)
+	target_add_linker_flag(${target} "/DEBUG:FULL" DEBUG RELWITHDEBINFO)
+
+	# set optimization
+	target_add_compiler_flag(${target} "/Od" DEBUG)
+	target_add_compiler_flag(${target} "/O2" RELWITHDEBINFO)
+	target_add_compiler_flag(${target} "/Ox" RELEASE)
+
+	# enables automatic parallelization of loops
+	target_add_compiler_flag(${target} "/Qpar" RELEASE)
+
+	# enable runtime checks
+	target_add_compiler_flag(${target} "/RTC1" DEBUG)
+
+	# disable incremental compilations
+	target_add_linker_flag(${target} "/INCREMENTAL:NO" RELEASE RELWITHDEBINFO)
+
+	# remove unused symbols
+	target_add_linker_flag(${target} "/OPT:REF" RELEASE RELWITHDEBINFO)
+	target_add_linker_flag(${target} "/OPT:ICF" RELEASE RELWITHDEBINFO)
+
+	# disable manifests
+	target_add_linker_flag(${target} "/MANIFEST:NO" RELEASE RELWITHDEBINFO)
+
+	# enable function-level linking
+	#target_add_compiler_flag(${target} "/Gy" RELEASE RELWITHDEBINFO)
+
+	# sets the Checksum in the .exe header
+	#target_add_linker_flag(${target} "/RELEASE" RELEASE RELWITHDEBINFO)
+
 	# statically link C runtime library to static_runtime targets
 	if(option_static_runtime)
-		target_add_flag(${target} "/MTd" DEBUG)
-		target_add_flag(${target} "/MT" RELWITHDEBINFO RELEASE)
+		target_add_compiler_flag(${target} "/MTd" DEBUG)
+		target_add_compiler_flag(${target} "/MT" RELWITHDEBINFO RELEASE)
 	else()
-		target_add_flag(${target} "/MDd" DEBUG)
-		target_add_flag(${target} "/MD" RELWITHDEBINFO RELEASE)
+		target_add_compiler_flag(${target} "/MDd" DEBUG)
+		target_add_compiler_flag(${target} "/MD" RELWITHDEBINFO RELEASE)
 	endif()
 
 	# manage warnings
@@ -496,7 +597,7 @@ function(setup_msvc target)
 		  )
 	endif()
 	foreach(flag ${flags})
-		target_add_flag(${target} ${flag})
+		target_add_compiler_flag(${target} ${flag})
 	endforeach()
 endfunction()
 
@@ -517,11 +618,29 @@ function(setup_gcc target)
 	has_item(option_no_warnings "no_warnings" ${options})
 	has_item(option_low_warnings "low_warnings" ${options})
 
+	# generates complete debugging information
+	target_add_compiler_flag(${target} "-g" DEBUG RELWITHDEBINFO)
+
+	# set optimization
+	target_add_compiler_flag(${target} "-O0" DEBUG)
+	target_add_compiler_flag(${target} "-O2" RELWITHDEBINFO)
+	target_add_compiler_flag(${target} "-O3" RELEASE)
+
 	# statically link C runtime library to static_runtime targets
 	if(option_static_runtime)
-		target_add_flag(${target} "-static-libgcc")
-		target_add_flag(${target} "-static-libstdc++")
+		target_add_compiler_flag(${target} "-static-libgcc")
+		target_add_compiler_flag(${target} "-static-libstdc++")
 	endif()
+
+	# enable sanitizers and statically link their associated library
+	#target_add_linker_flag(${target} "-fsanitize=address")
+	#target_add_linker_flag(${target} "-static-libasan")
+	#target_add_linker_flag(${target} "-fsanitize=thread")
+	#target_add_linker_flag(${target} "-static-libtsan")
+	#target_add_linker_flag(${target} "-fsanitize=leak")
+	#target_add_linker_flag(${target} "-static-liblsan")
+	#target_add_linker_flag(${target} "-fsanitize=undefined")
+	#target_add_linker_flag(${target} "-static-libubsan")
 
 	# manage warnings
 	set(flags)
@@ -650,7 +769,7 @@ function(setup_gcc target)
 		endif()
 	endif()
 	foreach(flag IN ITEMS ${flags} ${c_flags} ${cxx_flags})
-		target_add_flag(${target} ${flag})
+		target_add_compiler_flag(${target} ${flag})
 	endforeach()
 endfunction()
 
@@ -667,11 +786,29 @@ function(setup_clang target)
 	has_item(option_no_warnings "no_warnings" ${options})
 	has_item(option_low_warnings "low_warnings" ${options})
 
+	# generates complete debugging information
+	target_add_compiler_flag(${target} "-g" DEBUG RELWITHDEBINFO)
+
+	# set optimization
+	target_add_compiler_flag(${target} "-O0" DEBUG)
+	target_add_compiler_flag(${target} "-O2" RELWITHDEBINFO)
+	target_add_compiler_flag(${target} "-O3" RELEASE)
+
 	# statically link C runtime library to static_runtime targets
 	if(option_static_runtime)
-		target_add_flag(${target} "-static-libgcc")
-		target_add_flag(${target} "-static-libstdc++")
+		target_add_compiler_flag(${target} "-static-libgcc")
+		target_add_compiler_flag(${target} "-static-libstdc++")
 	endif()
+
+	# enable sanitizers and statically link their associated library
+	#target_add_linker_flag(${target} "-fsanitize=address")
+	#target_add_linker_flag(${target} "-static-libasan")
+	#target_add_linker_flag(${target} "-fsanitize=thread")
+	#target_add_linker_flag(${target} "-static-libtsan")
+	#target_add_linker_flag(${target} "-fsanitize=leak")
+	#target_add_linker_flag(${target} "-static-liblsan")
+	#target_add_linker_flag(${target} "-fsanitize=undefined")
+	#target_add_linker_flag(${target} "-static-libubsan")
 
 	# manage warnings
 	set(flags)
@@ -772,7 +909,7 @@ function(setup_clang target)
 		  )
 	endif()
 	foreach(flag ${flags})
-		target_add_flag(${target} ${flag})
+		target_add_compiler_flag(${target} ${flag})
 	endforeach()
 endfunction()
 
@@ -855,15 +992,18 @@ function(make_target target group)
 	set_target_properties(${target} PROPERTIES FOLDER ${group})
 endfunction()
 
-## configure_folder(input_folder output_folder)
-# Recursively copie all files from an input folder to an output folder
+## configure_folder(input_folder output_folder [args...])
+# Recursively copy all files from an input folder to an output folder
+# Copy is made with CMake configure_file(), see documentation for more information:
+# https://cmake.org/cmake/help/latest/command/configure_file.html
 #   {value} [in] input_folder:    Input folder
 #   {value} [in] output_folder:   Output folder
+#   {value} [in] args:            CMake configure_file() additional arguments
 function(configure_folder input_folder output_folder)
-	file(GLOB_RECURSE files "${input_folder}" "${input_folder}/*")
+	file(GLOB_RECURSE files "${input_folder}/*")
 	foreach(file ${files})
 		file(RELATIVE_PATH relative_file ${input_folder} ${file})
-		configure_file(${file} "${output_folder}/${relative_file}" COPYONLY)
+		configure_file(${file} "${output_folder}/${relative_file}" ${ARGN})
 	endforeach()
 endfunction()
 
@@ -881,12 +1021,14 @@ set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # place generated binaries in build/bin
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/build/bin/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/build/bin/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/build/bin/)
 
 # place generated libs in build/lib
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/build/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/build/lib/)
@@ -899,74 +1041,3 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/build/lib/)
 # enable IDE folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "_CMake")
-
-
-# global msvc configuration
-if(MSVC)
-	# enable parallel compilation
-	add_cx_flag("/MP")
-
-	# generates complete debugging information
-	add_cx_flag(${target} "/Zi" DEBUG RELWITHDEBINFO)
-	add_linker_flag("/DEBUG:FULL" DEBUG RELWITHDEBINFO)
-
-	# set optimization
-	add_cx_flag(${target} "/Od" DEBUG)
-	add_cx_flag(${target} "/O2" RELWITHDEBINFO)
-	add_cx_flag(${target} "/Ox" RELEASE)
-
-	# enables automatic parallelization of loops
-	add_cx_flag(${target} "/Qpar" RELEASE)
-
-	# enable runtime checks
-	add_cx_flag("/RTC1" DEBUG)
-
-	# disable incremental compilations
-	remove_linker_flag("/INCREMENTAL(:(YES|NO))?" RELEASE RELWITHDEBINFO)
-	add_linker_flag("/INCREMENTAL:NO" RELEASE RELWITHDEBINFO)
-
-	# remove unused symbols
-	add_linker_flag("/OPT:REF" RELEASE RELWITHDEBINFO)
-	add_linker_flag("/OPT:ICF" RELEASE RELWITHDEBINFO)
-
-	# disable manifests
-	remove_linker_flag("/MANIFESTUAC(:(YES|NO))?" RELEASE RELWITHDEBINFO)
-	remove_linker_flag("/MANIFEST(:(YES|NO))?" RELEASE RELWITHDEBINFO)
-	add_linker_flag("/MANIFEST:NO" RELEASE RELWITHDEBINFO)
-
-	# enable function-level linking
-	add_cx_flag("/Gy" RELEASE RELWITHDEBINFO)
-
-	# sets the Checksum in the .exe header
-	#add_linker_flag("/RELEASE" RELEASE RELWITHDEBINFO)
-
-	# disable runtime link flags (and add them back per target)
-	remove_cx_flag("/(MD|MT)d" DEBUG)
-	remove_cx_flag("/(MD|MT)" RELEASE RELWITHDEBINFO)
-
-	# disable warnings (and add them back per target)
-	remove_cx_flag("/W[0-9]")
-	remove_cx_flag("/W[0-9]" RELEASE RELWITHDEBINFO DEBUG)
-endif()
-
-# global gcc configuration
-# if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCCXX)
-	# generates complete debugging information
-	add_cx_flag(${target} "-g" DEBUG RELWITHDEBINFO)
-
-	# set optimization
-	add_cx_flag(${target} "-O0" DEBUG)
-	add_cx_flag(${target} "-O2" RELWITHDEBINFO)
-	add_cx_flag(${target} "-O3" RELEASE)
-
-	# enable sanitizers and statically link their associated library
-	#add_linker_flag("-fsanitize=address" DEBUG)
-	#add_linker_flag("-static-libasan" DEBUG)
-	#add_linker_flag("-fsanitize=thread" DEBUG)
-	#add_linker_flag("-static-libtsan" DEBUG)
-	#add_linker_flag("-fsanitize=leak" DEBUG)
-	#add_linker_flag("-static-liblsan" DEBUG)
-	#add_linker_flag("-fsanitize=undefined" DEBUG)
-	#add_linker_flag("-static-libubsan" DEBUG)
-endif()
