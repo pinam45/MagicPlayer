@@ -7,23 +7,25 @@ set(COMPILE_SFML_WITH_PROJECT OFF CACHE BOOL "Compile SFML with project, don't s
 set(SFML_MINIMUM_SYSTEM_VERSION 2.5)
 
 set(SFML_USE_EMBEDED ${COMPILE_SFML_WITH_PROJECT})
-if(CONFIG_OS_WINDOWS)
-	set(SFML_USE_EMBEDED ON)
-	message(STATUS "OS is Windows, compile SFML with project")
-else()
-	find_package(SFML ${SFML_MINIMUM_SYSTEM_VERSION} COMPONENTS system window graphics audio CONFIG)
-	if(SFML_FOUND)
-		# Variables
-		set(SFML_INCLUDE_DIR  "")
-		set(SFML_LIBRARY sfml-system sfml-window sfml-graphics sfml-audio)
-
-		# Message
-		message("> include: ${SFML_INCLUDE_DIR}")
-		message("> library: ${SFML_LIBRARY}")
-		message(STATUS "Configuring SFML - Done")
-	else()
+if(NOT SFML_USE_EMBEDED)
+	if(CONFIG_OS_WINDOWS)
 		set(SFML_USE_EMBEDED ON)
-		message(STATUS "SFML system installation not found, compile SFML with project")
+		message(STATUS "OS is Windows, compile SFML with project")
+	else()
+		find_package(SFML ${SFML_MINIMUM_SYSTEM_VERSION} COMPONENTS system window graphics audio CONFIG)
+		if(SFML_FOUND)
+			# Variables
+			set(SFML_INCLUDE_DIR  "")
+			set(SFML_LIBRARY sfml-system sfml-window sfml-graphics sfml-audio)
+
+			# Message
+			message("> include: ${SFML_INCLUDE_DIR}")
+			message("> library: ${SFML_LIBRARY}")
+			message(STATUS "Configuring SFML - Done")
+		else()
+			set(SFML_USE_EMBEDED ON)
+			message(STATUS "SFML system installation not found, compile SFML with project")
+		endif()
 	endif()
 endif()
 
