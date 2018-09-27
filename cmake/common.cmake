@@ -633,15 +633,12 @@ function(setup_gcc target)
 		target_add_compiler_flag(${target} "-static-libstdc++")
 	endif()
 
-	# enable sanitizers and statically link their associated library
-	#target_add_linker_flag(${target} "-fsanitize=address")
-	#target_add_linker_flag(${target} "-static-libasan")
-	#target_add_linker_flag(${target} "-fsanitize=thread")
-	#target_add_linker_flag(${target} "-static-libtsan")
-	#target_add_linker_flag(${target} "-fsanitize=leak")
-	#target_add_linker_flag(${target} "-static-liblsan")
-	#target_add_linker_flag(${target} "-fsanitize=undefined")
-	#target_add_linker_flag(${target} "-static-libubsan")
+	# enable sanitizers
+	target_add_linker_flag(${target} "-fsanitize=address" DEBUG RELWITHDEBINFO)
+	target_add_linker_flag(${target} "-fsanitize=thread" DEBUG RELWITHDEBINFO)
+	target_add_linker_flag(${target} "-fsanitize=memory" DEBUG RELWITHDEBINFO)
+	target_add_linker_flag(${target} "-fsanitize=undefined" DEBUG RELWITHDEBINFO)
+	target_add_linker_flag(${target} "-fsanitize=leak" DEBUG RELWITHDEBINFO)
 
 	# manage warnings
 	set(flags)
@@ -801,15 +798,12 @@ function(setup_clang target)
 		target_add_compiler_flag(${target} "-static-libstdc++")
 	endif()
 
-	# enable sanitizers and statically link their associated library
-	#target_add_linker_flag(${target} "-fsanitize=address")
-	#target_add_linker_flag(${target} "-static-libasan")
-	#target_add_linker_flag(${target} "-fsanitize=thread")
-	#target_add_linker_flag(${target} "-static-libtsan")
-	#target_add_linker_flag(${target} "-fsanitize=leak")
-	#target_add_linker_flag(${target} "-static-liblsan")
-	#target_add_linker_flag(${target} "-fsanitize=undefined")
-	#target_add_linker_flag(${target} "-static-libubsan")
+	# enable sanitizers
+	target_add_linker_flag(${target} "-fsanitize=address" DEBUG RELWITHDEBINFO)
+	target_add_linker_flag(${target} "-fsanitize=thread" DEBUG RELWITHDEBINFO)
+	target_add_linker_flag(${target} "-fsanitize=memory" DEBUG RELWITHDEBINFO)
+	target_add_linker_flag(${target} "-fsanitize=undefined" DEBUG RELWITHDEBINFO)
+	target_add_linker_flag(${target} "-fsanitize=leak" DEBUG RELWITHDEBINFO)
 
 	# manage warnings
 	set(flags)
