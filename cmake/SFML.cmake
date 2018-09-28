@@ -19,6 +19,9 @@ if(NOT SFML_USE_EMBEDED)
 			set(SFML_LIBRARY sfml-system sfml-window sfml-graphics sfml-audio)
 
 			# Message
+			message(WARNING "If the program crashes when using the clipboard,"
+			  " it is an SFML bug not yet fixed on your system but already fixed on Github (see https://github.com/SFML/SFML/pull/1437),"
+			  " use CMake with -DCOMPILE_SFML_WITH_PROJECT=ON to compile and use the fixed version with the project")
 			message("> include: ${SFML_INCLUDE_DIR}")
 			message("> library: ${SFML_LIBRARY}")
 			message(STATUS "Configuring SFML - Done")
