@@ -45,6 +45,7 @@ make_target(
   OPTIONS cxx no_warnings static_runtime
 )
 target_link_libraries(imgui-sfml PRIVATE "${SFML_LIBRARY}" "${OPENGL_LIBRARY}")
+target_compile_definitions(imgui-sfml PUBLIC IMGUI_DISABLE_OBSOLETE_FUNCTIONS)
 
 # Variables
 get_filename_component(IMGUI_SFML_INCLUDE_DIR  ${IMGUI_SFML_DIR}  ABSOLUTE)
