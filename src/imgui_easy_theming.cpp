@@ -171,7 +171,6 @@ namespace ImGui::ETheming{
 		if (!ImGui::Begin("Theme config", p_open))
 		{
 			ImGui::End();
-			ImGui::PopID();
 			return;
 		}
 
