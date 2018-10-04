@@ -21,8 +21,17 @@ include(cmake/imgui.cmake)
 include(cmake/imgui-sfml.cmake)
 include(cmake/libmpg123.cmake)
 
-# Project
-project(MagicPlayer)
+# Project version
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 1)
+set(VERSION_PATCH 0)
+
+# Project declaration
+project(
+  MagicPlayer
+  VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
+  LANGUAGES CXX
+)
 
 # Add postfix in debug mode
 #set(CMAKE_DEBUG_POSTFIX -d)
@@ -40,20 +49,51 @@ make_target(
   EXT_INCLUDES "${OPENGL_INCLUDE_DIR}" "${SFML_INCLUDE_DIR}" "${IMGUI_INCLUDE_DIR}" "${IMGUI_SFML_INCLUDE_DIR}" "${LIBMPG123_INCLUDE_DIR}"
   OPTIONS cxx executable static_runtime
 )
-target_link_libraries(MagicPlayer PRIVATE ${OPENGL_LIBRARY} ${SFML_LIBRARY} ${IMGUI_SFML_LIBRARY} ${LIBMPG123_LIBRARY})
+
+# Link dependencies
+target_link_libraries(
+  MagicPlayer PRIVATE
+  ${OPENGL_LIBRARY}
+  ${SFML_LIBRARY}
+  ${IMGUI_SFML_LIBRARY}
+  ${LIBMPG123_LIBRARY}
+)
+
+# WinMain config
 if(TARGET sfml-main)
 	target_link_libraries(MagicPlayer PRIVATE "sfml-main")
 	set_target_properties(MagicPlayer PROPERTIES WIN32_EXECUTABLE ON)
 endif()
+
+# Link threads library
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(MagicPlayer PRIVATE Threads::Threads)
+
+# Build in C++17
 set_target_properties(
   MagicPlayer PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
+)
+
+# Visual studio config
+set_target_properties(
+  MagicPlayer PROPERTIES
   VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
 )
-set_property(DIRECTORY
+set_property(
+  DIRECTORY
   ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY
   VS_STARTUP_PROJECT MagicPlayer
 )
 
+# Resources
+configure_folder(
+  "${CMAKE_SOURCE_DIR}/resources"
+  "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/resources"
+  COPYONLY
+)
+
+# Verbose makefile
 #set(CMAKE_VERBOSE_MAKEFILE ON)

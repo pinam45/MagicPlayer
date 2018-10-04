@@ -634,11 +634,11 @@ function(setup_gcc target)
 	endif()
 
 	# enable sanitizers
-	target_add_linker_flag(${target} "-fsanitize=address" DEBUG RELWITHDEBINFO)
-	target_add_linker_flag(${target} "-fsanitize=thread" DEBUG RELWITHDEBINFO)
-	target_add_linker_flag(${target} "-fsanitize=memory" DEBUG RELWITHDEBINFO)
-	target_add_linker_flag(${target} "-fsanitize=undefined" DEBUG RELWITHDEBINFO)
-	target_add_linker_flag(${target} "-fsanitize=leak" DEBUG RELWITHDEBINFO)
+	#target_add_linker_flag(${target} "-fsanitize=address" DEBUG RELWITHDEBINFO)
+	#target_add_linker_flag(${target} "-fsanitize=thread" DEBUG RELWITHDEBINFO)
+	#target_add_linker_flag(${target} "-fsanitize=memory" DEBUG RELWITHDEBINFO)
+	#target_add_linker_flag(${target} "-fsanitize=undefined" DEBUG RELWITHDEBINFO)
+	#target_add_linker_flag(${target} "-fsanitize=leak" DEBUG RELWITHDEBINFO)
 
 	# manage warnings
 	set(flags)
@@ -750,7 +750,7 @@ function(setup_gcc target)
 			  #"-Wsuggest-attribute=format"
 
 			  ## Guidelines from Scott Meyers’ Effective C++ series of books
-			  "-Weffc++"
+			  #"-Weffc++"
 
 			  ## Special purpose
 			  #"-Wsign-promo"
@@ -799,11 +799,11 @@ function(setup_clang target)
 	endif()
 
 	# enable sanitizers
-	target_add_linker_flag(${target} "-fsanitize=address" DEBUG RELWITHDEBINFO)
-	target_add_linker_flag(${target} "-fsanitize=thread" DEBUG RELWITHDEBINFO)
-	target_add_linker_flag(${target} "-fsanitize=memory" DEBUG RELWITHDEBINFO)
-	target_add_linker_flag(${target} "-fsanitize=undefined" DEBUG RELWITHDEBINFO)
-	target_add_linker_flag(${target} "-fsanitize=leak" DEBUG RELWITHDEBINFO)
+	#target_add_linker_flag(${target} "-fsanitize=address" DEBUG RELWITHDEBINFO)
+	#target_add_linker_flag(${target} "-fsanitize=thread" DEBUG RELWITHDEBINFO)
+	#target_add_linker_flag(${target} "-fsanitize=memory" DEBUG RELWITHDEBINFO)
+	#target_add_linker_flag(${target} "-fsanitize=undefined" DEBUG RELWITHDEBINFO)
+	#target_add_linker_flag(${target} "-fsanitize=leak" DEBUG RELWITHDEBINFO)
 
 	# manage warnings
 	set(flags)

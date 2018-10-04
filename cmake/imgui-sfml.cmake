@@ -42,7 +42,7 @@ get_files(
 make_target(
   imgui-sfml "deps/imgui-sfml" ${files}
   INCLUDES "${OPENGL_INCLUDE_DIR}" "${SFML_INCLUDE_DIR}" "${IMGUI_INCLUDE_DIR}" "${IMGUI_SFML_DIR}"
-  OPTIONS cxx no_warnings static_runtime
+  OPTIONS cxx no_warnings
 )
 target_link_libraries(imgui-sfml PRIVATE "${SFML_LIBRARY}" "${OPENGL_LIBRARY}")
 target_compile_definitions(imgui-sfml PUBLIC IMGUI_DISABLE_OBSOLETE_FUNCTIONS)
