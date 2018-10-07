@@ -20,6 +20,7 @@ include(cmake/SFML.cmake)
 include(cmake/imgui.cmake)
 include(cmake/imgui-sfml.cmake)
 include(cmake/libmpg123.cmake)
+include(cmake/spdlog.cmake)
 
 # Project version
 set(VERSION_MAJOR 0)
@@ -53,6 +54,7 @@ make_target(
     "${IMGUI_INCLUDE_DIR}"
     "${IMGUI_SFML_INCLUDE_DIR}"
     "${LIBMPG123_INCLUDE_DIR}"
+    "${SPDLOG_INCLUDE_DIR}"
   OPTIONS
     cxx
     executable
@@ -66,6 +68,7 @@ target_link_libraries(
   ${SFML_LIBRARY}
   ${IMGUI_SFML_LIBRARY}
   ${LIBMPG123_LIBRARY}
+  ${SPDLOG_LIBRARY}
 )
 
 # WinMain config
