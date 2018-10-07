@@ -24,21 +24,91 @@
  *                                                                                       *
  *****************************************************************************************/
 
-#include "model/Logic.hpp"
-#include "view/GUI.hpp"
-#include "SoundFileReaderMp3.hpp"
+#ifndef MAGICPLAYER_MESSAGES_HPP
+#define MAGICPLAYER_MESSAGES_HPP
 
-#include <thread>
 
-int main()
-{
-	Logic logic;
-	std::thread logicThread([&](){logic.run();});
+#include "utils/shared_queue.hpp"
 
-	GUI gui(logic.getCom());
-	gui.run();
+#include <string>
+#include <variant>
 
-	logicThread.join();
+namespace Msg{
 
-	return EXIT_SUCCESS;
+	namespace In{
+
+		struct Close{
+			//TODO: save?
+		};
+
+		struct Load{
+			std::string path;
+
+			explicit Load(std::string path);
+		};
+
+		struct Control{
+			enum Action{
+				PLAY,
+				PAUSE,
+				STOP
+			};
+			Action action;
+
+			explicit Control(Action action);
+		};
+
+		struct Volume{
+			bool muted;
+			float volume;
+
+			Volume(bool muted, float volume);
+		};
+
+		struct MusicOffset{
+			float seconds;
+
+			explicit MusicOffset(float seconds);
+		};
+
+		struct RequestMusicOffset{
+			//TODO: general Request message with enum?
+		};
+	}
+
+	namespace Out{
+
+		struct MusicOffset{
+			float seconds;
+
+			explicit MusicOffset(float seconds);
+		};
+
+		struct MusicInfo{
+			bool valid;
+			float durationSeconds;
+
+			MusicInfo(bool valid, float durationSeconds);
+		};
+	}
+
+	struct Com{
+		typedef std::variant<
+		  In::Close,
+		  In::Load,
+		  In::Control,
+		  In::Volume,
+		  In::MusicOffset,
+		  In::RequestMusicOffset
+		> InMessage;
+		typedef std::variant<
+		  Out::MusicOffset,
+		  Out::MusicInfo
+		> OutMessage;
+		shared_queue<InMessage> in;
+		shared_queue<OutMessage, true> out;
+	};
 }
+
+
+#endif //MAGICPLAYER_MESSAGES_HPP

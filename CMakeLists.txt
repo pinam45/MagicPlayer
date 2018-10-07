@@ -45,9 +45,18 @@ get_files(
 )
 make_target(
   MagicPlayer "MagicPlayer" ${files}
-  INCLUDES "include/"
-  EXT_INCLUDES "${OPENGL_INCLUDE_DIR}" "${SFML_INCLUDE_DIR}" "${IMGUI_INCLUDE_DIR}" "${IMGUI_SFML_INCLUDE_DIR}" "${LIBMPG123_INCLUDE_DIR}"
-  OPTIONS cxx executable static_runtime
+  INCLUDES
+    "include/"
+  EXT_INCLUDES
+    "${OPENGL_INCLUDE_DIR}"
+    "${SFML_INCLUDE_DIR}"
+    "${IMGUI_INCLUDE_DIR}"
+    "${IMGUI_SFML_INCLUDE_DIR}"
+    "${LIBMPG123_INCLUDE_DIR}"
+  OPTIONS
+    cxx
+    executable
+    static_runtime
 )
 
 # Link dependencies

@@ -26,7 +26,7 @@
 
 // Based on functions from gpulib by procedural (https://github.com/procedural/gpulib)
 
-#include <imgui_easy_theming.hpp>
+#include <view/imgui_easy_theming.hpp>
 
 #include <imgui.h>
 

@@ -24,83 +24,32 @@
  *                                                                                       *
  *****************************************************************************************/
 
-// Based on functions from gpulib by procedural (https://github.com/procedural/gpulib)
-
-#ifndef IMGUI_EASY_THEMING_HPP
-#define IMGUI_EASY_THEMING_HPP
+#ifndef MAGICPLAYER_LOGIC_HPP
+#define MAGICPLAYER_LOGIC_HPP
 
 
-namespace ImGui::ETheming{
+#include <SFML/Audio/Music.hpp>
+#include "Messages.hpp"
 
-	struct Color
-	{
-		float r;
-		float g;
-		float b;
+class Logic {
 
-		constexpr explicit Color(int r, int g, int b) noexcept;
-	};
+public:
 
-	struct ColorTheme
-	{
-		Color text;
-		Color head;
-		Color area;
-		Color body;
-		Color pops;
+	Logic();
 
-		constexpr ColorTheme(Color text, Color head, Color area, Color body, Color pops) noexcept;
+	template<typename Message>
+	void handleMessage(Message& message) = delete;
 
-		// Arc Dark: https://github.com/horst3180/arc-theme
-		static const ColorTheme ArcDark;
+	Msg::Com& getCom();
 
-		// Flat UI by yorick.penninks: https://color.adobe.com/Flat-UI-color-theme-2469224/
-		static const ColorTheme FlatUI;
+	void run();
 
-		// Mint-Y-Dark: https://github.com/linuxmint/mint-y-theme
-		static const ColorTheme MintYDark;
-	};
+private:
 
-	void setColorTheme(const ColorTheme& colorTheme);
-
-	bool showThemeColorsChooser(ColorTheme* p_colorTheme);
-
-	void showThemeColorsManager(ColorTheme* p_colorTheme);
-
-	void showPredefinedThemeSelector(ColorTheme* p_colorTheme);
-
-	void showThemeConfigWindow(ColorTheme* p_colorTheme, bool* p_open);
-}
+	Msg::Com m_com;
+	bool m_end;
+	sf::Music m_music;
+};
 
 
-namespace ImGui::ETheming{
-
-	constexpr Color::Color(
-	  int r_,
-	  int g_,
-	  int b_
-	) noexcept
-	  : r(static_cast<float>(r_) / 255.f)
-	  , g(static_cast<float>(g_) / 255.f)
-	  , b(static_cast<float>(b_) / 255.f)
-	{
-	}
-
-	constexpr ColorTheme::ColorTheme(
-	  Color text_,
-	  Color head_,
-	  Color area_,
-	  Color body_,
-	  Color pops_
-	) noexcept
-	  : text(text_)
-	  , head(head_)
-	  , area(area_)
-	  , body(body_)
-	  , pops(pops_)
-	{
-	}
-}
-
-
-#endif //IMGUI_EASY_THEMING_HPP
+#endif //MAGICPLAYER_LOGIC_HPP

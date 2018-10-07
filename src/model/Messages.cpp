@@ -24,21 +24,38 @@
  *                                                                                       *
  *****************************************************************************************/
 
-#include "model/Logic.hpp"
-#include "view/GUI.hpp"
-#include "SoundFileReaderMp3.hpp"
+#include <model/Messages.hpp>
 
-#include <thread>
+#include "model/Messages.hpp"
 
-int main()
-{
-	Logic logic;
-	std::thread logicThread([&](){logic.run();});
+Msg::In::Load::Load(std::string path_)
+  : path(std::move(path_)) {
 
-	GUI gui(logic.getCom());
-	gui.run();
+}
 
-	logicThread.join();
+Msg::In::Control::Control(Control::Action action_)
+  : action(action_) {
 
-	return EXIT_SUCCESS;
+}
+
+Msg::In::Volume::Volume(bool muted_, float volume_)
+  : muted(muted_)
+  , volume(volume_) {
+
+}
+
+Msg::In::MusicOffset::MusicOffset(float seconds_)
+  : seconds(seconds_) {
+
+}
+
+Msg::Out::MusicOffset::MusicOffset(float seconds_)
+  : seconds(seconds_) {
+
+}
+
+Msg::Out::MusicInfo::MusicInfo(bool valid_, float durationSeconds_)
+  : valid(valid_)
+  , durationSeconds(durationSeconds_) {
+
 }

@@ -24,21 +24,44 @@
  *                                                                                       *
  *****************************************************************************************/
 
-#include "model/Logic.hpp"
-#include "view/GUI.hpp"
-#include "SoundFileReaderMp3.hpp"
+#ifndef MAGICPLAYER_GUI_HPP
+#define MAGICPLAYER_GUI_HPP
 
-#include <thread>
 
-int main()
-{
-	Logic logic;
-	std::thread logicThread([&](){logic.run();});
+#include "model/Messages.hpp"
+#include "imgui_easy_theming.hpp"
 
-	GUI gui(logic.getCom());
-	gui.run();
+#include <array>
 
-	logicThread.join();
+class GUI {
 
-	return EXIT_SUCCESS;
-}
+public:
+
+	explicit GUI(Msg::Com& com);
+
+	template<typename Message>
+	void handleMessage(Message& message) = delete;
+
+	int run();
+
+private:
+
+	void show();
+
+	struct MusicInfos{
+		bool valid;
+		float offset;
+		float duration;
+	};
+	MusicInfos m_musicInfos;
+
+	Msg::Com& m_com;
+	bool m_showThemeConfigWindow;
+	std::array<char, 2018> m_music_file_path;
+	float m_volume;
+	ImGui::ETheming::ColorTheme m_style;
+
+};
+
+
+#endif //MAGICPLAYER_GUI_HPP
