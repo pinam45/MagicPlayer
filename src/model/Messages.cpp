@@ -24,8 +24,6 @@
  *                                                                                       *
  *****************************************************************************************/
 
-#include <model/Messages.hpp>
-
 #include "model/Messages.hpp"
 
 Msg::In::Load::Load(std::string path_)
