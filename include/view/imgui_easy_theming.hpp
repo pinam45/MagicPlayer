@@ -67,6 +67,9 @@ namespace ImGui::ETheming{
 
 		// Mint-Y-Dark: https://github.com/linuxmint/mint-y-theme
 		static const ColorTheme MintYDark;
+
+		// Custom light theme
+		static const ColorTheme Light;
 	};
 
 	void setColorTheme(const ColorTheme& colorTheme);

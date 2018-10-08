@@ -61,6 +61,15 @@ namespace ImGui::ETheming{
 	  Color{30, 30, 30} // pops
 	};
 
+	// Custom light theme
+	const ColorTheme ColorTheme::Light{
+	  Color{78, 62, 60}, // text
+	  Color{60, 141, 244}, // head
+	  Color{187, 201, 211}, // area
+	  Color{238, 238, 236}, // body
+	  Color{192, 192, 192} // pops
+	};
+
 	void setColorTheme(const ColorTheme& theme)
 	{
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -148,11 +157,13 @@ namespace ImGui::ETheming{
 		  "Arc Dark",
 		  "Flat UI",
 		  "Mint-Y-Dark",
+		  "Light",
 		};
 		static const ColorTheme predefined_styles[] = {
 		  ColorTheme::ArcDark,
 		  ColorTheme::FlatUI,
 		  ColorTheme::MintYDark,
+		  ColorTheme::Light,
 		};
 		static int predefined_style_number = COUNT_OF(predefined_styles);
 
