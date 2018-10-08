@@ -44,6 +44,9 @@ namespace {
 	constexpr float MUSIC_INITIAL_VOLUME = 20.0f;
 	constexpr float MUSIC_OFFSET_REFRESH_SECONDS = 0.1f;
 	constexpr unsigned int FRAME_RATE_LIMIT = 60;
+	constexpr const char* DROID_SANS_MONO_FONT_PATH = "resources/fonts/DroidSans/DroidSansMono.ttf";
+	constexpr const char* DEFAULT_FONT_PATH = DROID_SANS_MONO_FONT_PATH;
+	constexpr float DEFAULT_FONT_SIZE = 13.5f;
 }
 
 GUI::GUI(Msg::Com& com_)
@@ -81,12 +84,22 @@ int GUI::run() {
 	);
 	window.setVerticalSyncEnabled(true);
 	window.setFramerateLimit(FRAME_RATE_LIMIT);
-	ImGui::SFML::Init(window);
+	ImGui::SFML::Init(window, false);
 
-	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable docking
-	ImGui::GetIO().ConfigDockingWithShift = false;
-	ImGui::GetIO().IniFilename = nullptr; // disable .ini saving
-	ImGui::GetIO().ConfigDockingWithShift = true;
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable docking
+	io.ConfigDockingWithShift = false;
+	io.IniFilename = nullptr; // disable .ini saving
+	io.ConfigDockingWithShift = true;
+	ImFont* default_font = io.Fonts->AddFontFromFileTTF(DEFAULT_FONT_PATH, DEFAULT_FONT_SIZE);
+	if(default_font){
+		SPDLOG_DEBUG(m_logger, "Loaded font {}", DEFAULT_FONT_PATH);
+	}
+	else{
+		m_logger->warn("Failed to load font {}: use default font instead", DEFAULT_FONT_PATH);
+		io.Fonts->AddFontDefault();
+	}
+	ImGui::SFML::UpdateFontTexture();
 	SPDLOG_DEBUG(m_logger, "Configured imgui");
 
 	//FIXME
