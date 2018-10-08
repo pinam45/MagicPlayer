@@ -31,6 +31,8 @@
 #include "model/Messages.hpp"
 #include "imgui_easy_theming.hpp"
 
+#include <spdlog/logger.h>
+
 #include <array>
 
 class GUI {
@@ -61,6 +63,7 @@ private:
 	float m_volume;
 	ImGui::ETheming::ColorTheme m_style;
 
+	std::shared_ptr<spdlog::logger> m_logger;
 };
 
 

@@ -107,5 +107,12 @@ configure_folder(
   COPYONLY
 )
 
+# Enable console log in debug
+target_add_compile_definition(MagicPlayer ENABLE_CONSOLE_LOG)
+
+# Enable debug / trace logs
+target_add_compile_definition(MagicPlayer SPDLOG_DEBUG_ON RELWITHDEBINFO DEBUG)
+#target_add_compile_definition(MagicPlayer SPDLOG_TRACE_ON DEBUG)
+
 # Verbose makefile
 #set(CMAKE_VERBOSE_MAKEFILE ON)

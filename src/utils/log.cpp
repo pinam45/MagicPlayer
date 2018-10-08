@@ -24,36 +24,46 @@
  *                                                                                       *
  *****************************************************************************************/
 
-#ifndef MAGICPLAYER_LOGIC_HPP
-#define MAGICPLAYER_LOGIC_HPP
+#include "utils/log.hpp"
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/rotating_file_sink.h>
 
-#include "Messages.hpp"
+#include <iostream>
 
-#include <SFML/Audio/Music.hpp>
-#include <spdlog/logger.h>
+constexpr const char* LOG_FILENAME = "log.txt";
+constexpr std::size_t LOG_MAX_SIZE = 1024 * 1024 * 5;
+constexpr std::size_t LOG_MAX_FILES = 3;
 
-class Logic {
+bool init_logger() {
+	try{
+		std::vector<spdlog::sink_ptr> sinks;
 
-public:
+		std::shared_ptr<spdlog::sinks::sink> file_sink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(LOG_FILENAME, LOG_MAX_SIZE, LOG_MAX_FILES);
+		file_sink->set_level(spdlog::level::trace);
+		sinks.push_back(file_sink);
 
-	Logic();
+#ifdef ENABLE_CONSOLE_LOG
+		std::shared_ptr<spdlog::sinks::sink> console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+		console_sink->set_level(spdlog::level::warn);
+		sinks.push_back(console_sink);
+#endif
 
-	template<typename Message>
-	void handleMessage(Message& message) = delete;
+		for(const char* logger_name : LOGGERS_NAMES){
+			std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>(logger_name, sinks.cbegin(), sinks.cend());
+			logger->set_level(spdlog::level::trace);
+			logger->flush_on(spdlog::level::err);
+			spdlog::register_logger(logger);
+		}
 
-	Msg::Com& getCom();
+		spdlog::get(GENERAL_LOGGER_NAME)->info("Logger initialised");
+	}
+	catch (const spdlog::spdlog_ex& ex)
+	{
+		std::cerr << "Logger initialization failed: " << ex.what() << std::endl;
+		return false;
+	}
 
-	void run();
-
-private:
-
-	Msg::Com m_com;
-	bool m_end;
-	sf::Music m_music;
-
-	std::shared_ptr<spdlog::logger> m_logger;
-};
-
-
-#endif //MAGICPLAYER_LOGIC_HPP
+	return true;
+}

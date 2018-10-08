@@ -26,6 +26,7 @@
 
 #include "view/GUI.hpp"
 #include "view/imgui_easy_theming.hpp"
+#include "utils/log.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h> //FIXME
@@ -34,6 +35,7 @@
 #include <SFML/System/Time.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <spdlog/spdlog.h>
 
 namespace {
 	constexpr const char* WINDOW_NAME = "MagicPlayer";
@@ -49,7 +51,8 @@ GUI::GUI(Msg::Com& com_)
   , m_showThemeConfigWindow(false)
   , m_music_file_path()
   , m_volume(MUSIC_INITIAL_VOLUME)
-  , m_style(ImGui::ETheming::ColorTheme::ArcDark) {
+  , m_style(ImGui::ETheming::ColorTheme::ArcDark)
+  , m_logger(spdlog::get(VIEW_LOGGER_NAME)) {
 
 	m_musicInfos.valid = false;
 	m_musicInfos.offset = 0;
@@ -84,15 +87,18 @@ int GUI::run() {
 	ImGui::GetIO().ConfigDockingWithShift = false;
 	ImGui::GetIO().IniFilename = nullptr; // disable .ini saving
 	ImGui::GetIO().ConfigDockingWithShift = true;
+	SPDLOG_DEBUG(m_logger, "Configured imgui");
 
 	//FIXME
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.WindowRounding = 0.0f;
 	style.ScrollbarRounding = 0.0f;
 	ImGui::ETheming::setColorTheme(m_style);
+	SPDLOG_DEBUG(m_logger, "Setup style");
 
 	//Initial logic config
 	m_com.in.push_back(Msg::In::Volume(false, m_volume));
+	SPDLOG_DEBUG(m_logger, "Send initial config messages");
 
 	while(window.isOpen())
 	{
@@ -111,6 +117,7 @@ int GUI::run() {
 		while(!m_com.out.empty()){
 			Msg::Com::OutMessage message_ = m_com.out.front();
 			std::visit([&](auto&& message) noexcept {
+				SPDLOG_TRACE(m_logger, "Received message {}", message);
 				handleMessage(message);
 			}, message_);
 			m_com.out.pop_front();
@@ -130,11 +137,13 @@ int GUI::run() {
 		ImGui::SFML::Render(window);
 		window.display();
 	}
+	SPDLOG_DEBUG(m_logger, "Main loop ended");
 
 	m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::STOP));
 	m_com.in.push_back(Msg::In::Close{});
 
 	ImGui::SFML::Shutdown();
+	SPDLOG_DEBUG(m_logger, "imgui-SFML shutdown");
 	return EXIT_SUCCESS;
 }
 
@@ -163,7 +172,9 @@ void GUI::show() {
 
 	if(ImGui::BeginMenuBar()){
 		if(ImGui::BeginMenu("Edit")){
-			ImGui::MenuItem("Theme", nullptr, &m_showThemeConfigWindow);
+			if(ImGui::MenuItem("Theme", nullptr, &m_showThemeConfigWindow)){
+				SPDLOG_DEBUG(m_logger, "Show theme config window");
+			}
 			ImGui::EndMenu();
 		}
 		ImGui::EndMenuBar();
@@ -181,6 +192,7 @@ void GUI::show() {
 		ImGui::DockBuilderDockWindow(ctx, "Explorer", dock_main_id);
 		ImGui::DockBuilderDockWindow(ctx, "Player", dock_id_bottom);
 		ImGui::DockBuilderFinish(ctx, dockspace_id);
+		SPDLOG_DEBUG(m_logger, "Set initial position of windows in the main dockspace");
 	}
 	ImGui::DockSpace(dockspace_id);
 
@@ -196,6 +208,7 @@ void GUI::show() {
 		float trac_pos = m_musicInfos.offset / m_musicInfos.duration * trac_max;
 		ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize() * 8);
 		if(ImGui::SliderScalar("##time", ImGuiDataType_Float, &trac_pos, &trac_min, &trac_max, "%.0f%%")){
+			m_logger->info("Request to set music offset to {:.2f} seconds", trac_pos / trac_max * m_musicInfos.duration);
 			m_com.in.push_back(Msg::In::MusicOffset(trac_pos / trac_max * m_musicInfos.duration));
 		}
 		ImGui::PopItemWidth();
@@ -206,14 +219,17 @@ void GUI::show() {
 		ImGui::LabelText("##time_post", "%02d:%02d / %02d:%02d", playingOffset_i / 60, playingOffset_i % 60, duration_i / 60, duration_i % 60);
 
 		if(ImGui::Button("play")){
+			m_logger->info("Request to play/resume music");
 			m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::PLAY));
 		}
 		ImGui::SameLine();
 		if(ImGui::Button("pause")){
+			m_logger->info("Request to pause music");
 			m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::PAUSE));
 		}
 		ImGui::SameLine();
 		if(ImGui::Button("stop")){
+			m_logger->info("Request to stop music");
 			m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::STOP));
 		}
 	}
@@ -221,6 +237,7 @@ void GUI::show() {
 	ImGui::Separator();
 	ImGui::PushItemWidth(ImGui::GetFontSize() * -4);
 	if(ImGui::SliderFloat("volume", &m_volume, 0.f, 100.f, "%.1f")){
+		m_logger->info("Request to change volume to {:.2f}%", m_volume);
 		m_com.in.push_back(Msg::In::Volume(false, m_volume));
 	}
 	ImGui::PopItemWidth();
@@ -244,6 +261,7 @@ void GUI::show() {
 
 	if(try_load_music){
 		const std::string file_path(m_music_file_path.data());
+		m_logger->info("Request to load music {}", file_path);
 		m_com.in.push_back(Msg::In::Load(file_path));
 	}
 	ImGui::End(); // Explorer

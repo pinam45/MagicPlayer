@@ -355,6 +355,31 @@ function(target_add_system_includes target)
 	target_include_directories(${target} SYSTEM PRIVATE ${ARGN})
 endfunction()
 
+## target_add_compile_definition(target definition [configs...])
+# Add a private compile definition to the target for the specified configs.
+#   {value} [in] target:       Target to add flag
+#   {value} [in] definition:   Definition to add
+#   {value} [in] configs:      Configs for the property to change (DEBUG|RELEASE|RELWITHDEBINFO)
+function(target_add_compile_definition target definition)
+	if(${ARGC} GREATER 2)
+		foreach(config ${ARGN})
+			string(TOLOWER "${config}" config_lower)
+			set(config_name)
+			foreach(valid_config IN ITEMS "Debug" "RelWithDebInfo" "Release")
+				string(TOLOWER "${valid_config}" valid_config_lower)
+				if(${config_lower} STREQUAL ${valid_config_lower})
+					set(config_name ${valid_config})
+				endif()
+			endforeach()
+			if(DEFINED config_name)
+				target_compile_definitions(${target} PRIVATE "$<$<CONFIG:${config_name}>:${definition}>")
+			endif()
+		endforeach()
+	else()
+		target_compile_definitions(${target} PRIVATE "${definition}")
+	endif()
+endfunction()
+
 ## target_add_compiler_flag(target flag [configs...])
 # Add a flag to the compiler arguments of the target for the specified configs.
 # Add the flag only if the compiler support it (checked with CHECK_CXX_COMPILER_FLAG).

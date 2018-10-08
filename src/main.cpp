@@ -24,14 +24,20 @@
  *                                                                                       *
  *****************************************************************************************/
 
+#include "utils/log.hpp"
 #include "model/Logic.hpp"
 #include "view/GUI.hpp"
 #include "SoundFileReaderMp3.hpp"
 
+#include <iostream>
 #include <thread>
 
 int main()
 {
+	if(!init_logger()){
+		return EXIT_FAILURE;
+	}
+
 	Logic logic;
 	std::thread logicThread([&](){logic.run();});
 

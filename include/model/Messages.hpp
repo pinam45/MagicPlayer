@@ -30,33 +30,53 @@
 
 #include "utils/shared_queue.hpp"
 
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
+
+#include <iostream>
+#include <iomanip>
 #include <string>
 #include <variant>
 
 namespace Msg{
+
+	namespace details{
+		struct ostream_config_guard{
+			std::ostream& os;
+			std::ios_base::fmtflags flags;
+
+			explicit ostream_config_guard(std::ostream& os);
+			~ostream_config_guard();
+		};
+	}
 
 	namespace In{
 
 		struct Close{
 			//TODO: save?
 		};
+		std::ostream& operator<<(std::ostream& os, const Close& m);
 
 		struct Load{
 			std::string path;
 
 			explicit Load(std::string path);
 		};
+		std::ostream& operator<<(std::ostream& os, const Load& m);
+
 
 		struct Control{
 			enum Action{
 				PLAY,
 				PAUSE,
-				STOP
+				STOP,
 			};
 			Action action;
 
 			explicit Control(Action action);
 		};
+		std::ostream& operator<<(std::ostream& os, const Control::Action& a);
+		std::ostream& operator<<(std::ostream& os, const Control& m);
 
 		struct Volume{
 			bool muted;
@@ -64,16 +84,19 @@ namespace Msg{
 
 			Volume(bool muted, float volume);
 		};
+		std::ostream& operator<<(std::ostream& os, const Volume& m);
 
 		struct MusicOffset{
 			float seconds;
 
 			explicit MusicOffset(float seconds);
 		};
+		std::ostream& operator<<(std::ostream& os, const MusicOffset& m);
 
 		struct RequestMusicOffset{
 			//TODO: general Request message with enum?
 		};
+		std::ostream& operator<<(std::ostream& os, const RequestMusicOffset& m);
 	}
 
 	namespace Out{
@@ -83,6 +106,7 @@ namespace Msg{
 
 			explicit MusicOffset(float seconds);
 		};
+		std::ostream& operator<<(std::ostream& os, const MusicOffset& m);
 
 		struct MusicInfo{
 			bool valid;
@@ -90,6 +114,7 @@ namespace Msg{
 
 			MusicInfo(bool valid, float durationSeconds);
 		};
+		std::ostream& operator<<(std::ostream& os, const MusicInfo& m);
 	}
 
 	struct Com{
@@ -108,6 +133,63 @@ namespace Msg{
 		shared_queue<InMessage> in;
 		shared_queue<OutMessage, true> out;
 	};
+}
+
+inline std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::In::Close& m){
+	return os << "Close{}";
+}
+
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Load& m){
+	return os << "Load{"
+	          << "path: "<< m.path
+	          << "}";
+}
+
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Control::Action& a){
+	constexpr const char* ACTION_STR[] = {
+	  "PLAY",
+	  "PAUSE",
+	  "STOP",
+	};
+	return os << ACTION_STR[a];
+}
+
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Control& m){
+	return os << "Control{"
+	          << "action: "<< m.action
+	          << "}";
+}
+
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Volume& m){
+	Msg::details::ostream_config_guard guard(os);
+	return os << "Volume{"
+	          << "muted: "<< m.muted << ","
+	          << "volume:" << m.volume
+	          << "}";
+}
+
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::MusicOffset& m){
+	return os << "MusicOffset{"
+	          << "seconds: "<< m.seconds
+	          << "}";
+}
+
+inline std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::In::RequestMusicOffset& m){
+	return os << "RequestMusicOffset{}";
+}
+
+inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::MusicOffset& m){
+	return os << "MusicOffset{"
+	          << "seconds: "<< m.seconds
+	          << "}";
+}
+
+inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::MusicInfo& m){
+	Msg::details::ostream_config_guard guard(os);
+	return os << "MusicInfo{"
+	          << "valid: "<< m.valid << ","
+	          << "durationSeconds:" << m.durationSeconds
+	          << "}";
 }
 
 
