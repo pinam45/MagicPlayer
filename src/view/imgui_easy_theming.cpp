@@ -107,6 +107,13 @@ namespace ImGui::ETheming{
 		style.Colors[ImGuiCol_ResizeGrip] = ImVec4(theme.head.r, theme.head.g, theme.head.b, 0.15f);
 		style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(theme.head.r, theme.head.g, theme.head.b, 0.78f);
 		style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(theme.head.r, theme.head.g, theme.head.b, 1.00f);
+		style.Colors[ImGuiCol_Tab] = ImVec4(theme.head.r, theme.head.g, theme.head.b, 0.46f);
+		style.Colors[ImGuiCol_TabHovered] = ImVec4(theme.head.r, theme.head.g, theme.head.b, 1.00f);
+		style.Colors[ImGuiCol_TabActive] = ImVec4(theme.head.r, theme.head.g, theme.head.b, 0.84f);
+		style.Colors[ImGuiCol_TabUnfocused] = ImVec4(theme.head.r, theme.head.g, theme.head.b, 0.16f);
+		style.Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(theme.head.r, theme.head.g, theme.head.b, 0.36f);
+		style.Colors[ImGuiCol_DockingPreview] = ImVec4(theme.head.r, theme.head.g, theme.head.b, 0.56f);
+		style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(theme.pops.r, theme.pops.g, theme.pops.b, 0.86f);
 		style.Colors[ImGuiCol_PlotLines] = ImVec4(theme.text.r, theme.text.g, theme.text.b, 0.63f);
 		style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(theme.head.r, theme.head.g, theme.head.b, 1.00f);
 		style.Colors[ImGuiCol_PlotHistogram] = ImVec4(theme.text.r, theme.text.g, theme.text.b, 0.63f);
@@ -117,6 +124,7 @@ namespace ImGui::ETheming{
 		style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(theme.text.r, theme.text.g, theme.text.b, 1.00f);
 		style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(theme.text.r, theme.text.g, theme.text.b, 0.20f);
 		style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(theme.text.r, theme.text.g, theme.text.b, 0.35f);
+		static_assert(ImGuiCol_COUNT == 50); // imgui 1.66 with docking
 	}
 
 	bool showThemeColorsChooser(ColorTheme* p_colorTheme){
