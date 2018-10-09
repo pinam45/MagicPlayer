@@ -69,7 +69,7 @@ namespace ImGui::ETheming{
 		static const ColorTheme MintYDark;
 
 		// Custom light theme
-		static const ColorTheme Light;
+		static const ColorTheme LightBlue;
 	};
 
 	void setColorTheme(const ColorTheme& colorTheme);
