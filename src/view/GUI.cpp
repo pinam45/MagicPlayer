@@ -85,7 +85,6 @@ int GUI::run() {
 	  sf::VideoMode(WINDOW_INITIAL_WIDTH, WINDOW_INITIAL_HEIGHT),
 	  WINDOW_NAME
 	);
-	window.setVerticalSyncEnabled(true);
 	window.setFramerateLimit(FRAME_RATE_LIMIT);
 	ImGui::SFML::Init(window, false);
 
