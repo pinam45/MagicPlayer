@@ -63,11 +63,11 @@ namespace ImGui::ETheming{
 
 	// Custom light theme
 	const ColorTheme ColorTheme::Light{
-	  Color{78, 62, 60}, // text
-	  Color{60, 141, 244}, // head
-	  Color{187, 201, 211}, // area
-	  Color{238, 238, 236}, // body
-	  Color{192, 192, 192} // pops
+	  Color{40, 30, 30}, // text
+	  Color{85, 141, 233}, // head
+	  Color{255, 255, 255}, // area
+	  Color{193, 223, 240}, // body
+	  Color{204, 232, 255} // pops
 	};
 
 	void setColorTheme(const ColorTheme& theme)
