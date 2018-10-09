@@ -296,7 +296,7 @@ ImFont* GUI::loadFonts(float pixel_size) {
 		m_logger->warn("Failed to load font {}: use default font instead", DEFAULT_FONT_PATH);
 	}
 
-	constexpr ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	static constexpr ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 	ImFontConfig icons_config;
 	icons_config.MergeMode = true;
 	icons_config.PixelSnapH = true;
