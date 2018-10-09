@@ -60,7 +60,6 @@ make_target(
   OPTIONS
     cxx
     executable
-    static_runtime
 )
 
 # Link dependencies
