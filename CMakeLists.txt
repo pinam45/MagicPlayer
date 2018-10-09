@@ -21,6 +21,7 @@ include(cmake/imgui.cmake)
 include(cmake/imgui-sfml.cmake)
 include(cmake/libmpg123.cmake)
 include(cmake/spdlog.cmake)
+include(cmake/IconFontCppHeaders.cmake)
 
 # Project version
 set(VERSION_MAJOR 0)
@@ -55,6 +56,7 @@ make_target(
     "${IMGUI_SFML_INCLUDE_DIR}"
     "${LIBMPG123_INCLUDE_DIR}"
     "${SPDLOG_INCLUDE_DIR}"
+    "${ICON_FONT_CPP_HEADERS_INCLUDE_DIR}"
   OPTIONS
     cxx
     executable
@@ -69,6 +71,7 @@ target_link_libraries(
   ${IMGUI_SFML_LIBRARY}
   ${LIBMPG123_LIBRARY}
   ${SPDLOG_LIBRARY}
+  ${ICON_FONT_CPP_HEADERS_LIBRARY}
 )
 
 # WinMain config

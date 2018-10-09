@@ -28,6 +28,7 @@
 #include "view/imgui_easy_theming.hpp"
 #include "utils/log.hpp"
 
+#include <IconsFontAwesome5.h>
 #include <imgui.h>
 #include <imgui_internal.h> //FIXME
 #include <imgui-SFML.h>
@@ -45,8 +46,10 @@ namespace {
 	constexpr float MUSIC_OFFSET_REFRESH_SECONDS = 0.1f;
 	constexpr unsigned int FRAME_RATE_LIMIT = 60;
 	constexpr const char* DROID_SANS_MONO_FONT_PATH = "resources/fonts/DroidSans/DroidSansMono.ttf";
+	constexpr const char* FONTAWESOME_FONT_PATH = "resources/fonts/fontawesome-free-5.4.0/" FONT_ICON_FILE_NAME_FAS;
 	constexpr const char* DEFAULT_FONT_PATH = DROID_SANS_MONO_FONT_PATH;
 	constexpr float DEFAULT_FONT_SIZE = 13.5f;
+	constexpr float LARGE_FONT_SIZE = 22.0f;
 }
 
 GUI::GUI(Msg::Com& com_)
@@ -91,14 +94,10 @@ int GUI::run() {
 	io.ConfigDockingWithShift = false;
 	io.IniFilename = nullptr; // disable .ini saving
 	io.ConfigDockingWithShift = true;
-	ImFont* default_font = io.Fonts->AddFontFromFileTTF(DEFAULT_FONT_PATH, DEFAULT_FONT_SIZE);
-	if(default_font){
-		SPDLOG_DEBUG(m_logger, "Loaded font {}", DEFAULT_FONT_PATH);
-	}
-	else{
-		m_logger->warn("Failed to load font {}: use default font instead", DEFAULT_FONT_PATH);
-		io.Fonts->AddFontDefault();
-	}
+
+	m_normal_font = loadFonts(DEFAULT_FONT_SIZE);
+	m_large_font = loadFonts(LARGE_FONT_SIZE);
+
 	ImGui::SFML::UpdateFontTexture();
 	SPDLOG_DEBUG(m_logger, "Configured imgui");
 
@@ -231,20 +230,22 @@ void GUI::show() {
 		ImGui::SameLine();
 		ImGui::LabelText("##time_post", "%02d:%02d / %02d:%02d", playingOffset_i / 60, playingOffset_i % 60, duration_i / 60, duration_i % 60);
 
-		if(ImGui::Button("play")){
+		ImGui::PushFont(m_large_font);
+		if(ImGui::Button(ICON_FA_PLAY)){
 			m_logger->info("Request to play/resume music");
 			m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::PLAY));
 		}
 		ImGui::SameLine();
-		if(ImGui::Button("pause")){
+		if(ImGui::Button(ICON_FA_PAUSE)){
 			m_logger->info("Request to pause music");
 			m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::PAUSE));
 		}
 		ImGui::SameLine();
-		if(ImGui::Button("stop")){
+		if(ImGui::Button(ICON_FA_STOP)){
 			m_logger->info("Request to stop music");
 			m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::STOP));
 		}
+		ImGui::PopFont();
 	}
 
 	ImGui::Separator();
@@ -282,4 +283,32 @@ void GUI::show() {
 	if(m_showThemeConfigWindow){
 		ImGui::ETheming::showThemeConfigWindow(&m_style, &m_showThemeConfigWindow);
 	}
+}
+
+ImFont* GUI::loadFonts(float pixel_size) {
+	ImGuiIO& io = ImGui::GetIO();
+
+	ImFont* default_font = io.Fonts->AddFontFromFileTTF(DEFAULT_FONT_PATH, pixel_size);
+	if(default_font){
+		SPDLOG_DEBUG(m_logger, "Loaded font {} {:.2f}px", DEFAULT_FONT_PATH, pixel_size);
+	}
+	else{
+		m_logger->warn("Failed to load font {}: use default font instead", DEFAULT_FONT_PATH);
+	}
+
+	constexpr ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	ImFontConfig icons_config;
+	icons_config.MergeMode = true;
+	icons_config.PixelSnapH = true;
+	icons_config.GlyphMinAdvanceX = pixel_size;
+	ImFont* font = io.Fonts->AddFontFromFileTTF(FONTAWESOME_FONT_PATH, pixel_size, &icons_config, icons_ranges);
+	if(font){
+		SPDLOG_DEBUG(m_logger, "Loaded font {} {:.2f}px", FONTAWESOME_FONT_PATH, pixel_size);
+	}
+	else{
+		m_logger->warn("Failed to load fontawesome ({}): icons disabled", FONTAWESOME_FONT_PATH);
+		font = default_font;
+	}
+
+	return font;
 }
