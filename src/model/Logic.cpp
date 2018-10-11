@@ -40,18 +40,13 @@ namespace {
 			SPDLOG_DEBUG(spdlog::get(GENERAL_LOGGER_NAME), "Custom MP3 file reader registered to SFML SoundFileFactory");
 		});
 	}
-
-	void sendMusicOffset(Msg::Com& com, sf::Music& music) {
-		com.out.emplace_back(
-		  std::in_place_type_t<Msg::Out::MusicOffset>{},
-		  music.getPlayingOffset().asSeconds()
-		);
-	}
 }
 
-Logic::Logic() : m_end(false), m_logger(spdlog::get(LOGIC_LOGGER_NAME)) {
-	init_SFML();
+template<typename Message, typename... Args>
+void Logic::sendMessage(Args&&... args) {
+	m_com.out.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
 }
+
 
 template<>
 void Logic::handleMessage([[maybe_unused]] Msg::In::Close& message) {
@@ -65,21 +60,11 @@ void Logic::handleMessage(Msg::In::Load& message) {
 	m_music.stop();
 	if(m_music.openFromFile(message.path)){
 		m_logger->info("Loaded {}", message.path);
-		m_com.out.push_back(
-		  Msg::Out::MusicInfo(
-		    true,
-		    m_music.getDuration().asSeconds()
-		  )
-		);
+		sendMessage<Msg::Out::MusicInfo>(true, m_music.getDuration().asSeconds());
 	}
 	else{
 		m_logger->warn("Failed to load {}", message.path);
-		m_com.out.push_back(
-		  Msg::Out::MusicInfo(
-			false,
-			0
-		  )
-		);
+		sendMessage<Msg::Out::MusicInfo>(false, 0);
 	}
 }
 
@@ -134,12 +119,16 @@ void Logic::handleMessage(Msg::In::MusicOffset& message) {
 	else{
 		m_logger->warn("Invalid music offset requested: {:.2f} seconds", message.seconds);
 	}
-	sendMusicOffset(m_com, m_music);
+	sendMessage<Msg::Out::MusicOffset>(m_music.getPlayingOffset().asSeconds());
 }
 
 template<>
 void Logic::handleMessage([[maybe_unused]] Msg::In::RequestMusicOffset& message) {
-	sendMusicOffset(m_com, m_music);
+	sendMessage<Msg::Out::MusicOffset>(m_music.getPlayingOffset().asSeconds());
+}
+
+Logic::Logic() : m_end(false), m_logger(spdlog::get(LOGIC_LOGGER_NAME)) {
+	init_SFML();
 }
 
 Msg::Com& Logic::getCom() {
