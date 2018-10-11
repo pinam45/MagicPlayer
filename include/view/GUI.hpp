@@ -50,6 +50,9 @@ public:
 private:
 
 	void show();
+	void showMainDockspace();
+	void showPlayer();
+	void showExplorer();
 
 	ImFont* loadFonts(float pixel_size);
 
@@ -58,6 +61,8 @@ private:
 	void setupImGui();
 	void setupFonts();
 	void setupStyle();
+
+	void processMessages();
 
 	struct MusicInfos{
 		bool valid;

@@ -50,6 +50,10 @@ namespace {
 	constexpr const char* DEFAULT_FONT_PATH = DROID_SANS_MONO_FONT_PATH;
 	constexpr float DEFAULT_FONT_SIZE = 13.5f;
 	constexpr float LARGE_FONT_SIZE = 22.0f;
+	constexpr const char* INNER_WINDOW_MAIN_NAME = "Main";
+	constexpr const char* MAIN_DOCKSPACE_NAME = "Main dockspace";
+	constexpr const char* INNER_WINDOW_PLAYER_NAME = "Player";
+	constexpr const char* INNER_WINDOW_EXPLORER_NAME = "Explorer";
 }
 
 GUI::GUI(Msg::Com& com_)
@@ -105,14 +109,7 @@ int GUI::run() {
 		}
 
 		// Process messages
-		while(!m_com.out.empty()){
-			Msg::Com::OutMessage message_ = m_com.out.front();
-			std::visit([&](auto&& message) noexcept {
-				SPDLOG_TRACE(m_logger, "Received message {}", message);
-				handleMessage(message);
-			}, message_);
-			m_com.out.pop_front();
-		}
+		processMessages();
 
 		// Request music offset
 		if(m_musicInfos.valid && musicOffsetClock.getElapsedTime() > sf::seconds(MUSIC_OFFSET_REFRESH_SECONDS)){
@@ -140,27 +137,38 @@ int GUI::run() {
 
 void GUI::show() {
 
-	{
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
-		ImGui::SetNextWindowViewport(viewport->ID);
+	showMainDockspace();
+	showPlayer();
+	showExplorer();
+
+	if(m_showThemeConfigWindow){
+		ImGui::ETheming::showThemeConfigWindow(&m_style, &m_showThemeConfigWindow);
 	}
+}
+
+void GUI::showMainDockspace() {
+
+	// Open "full-windowed" imgui window
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->Pos);
+	ImGui::SetNextWindowSize(viewport->Size);
+	ImGui::SetNextWindowViewport(viewport->ID);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	ImGui::Begin("Main", nullptr,
-	  ImGuiWindowFlags_NoTitleBar
-	  | ImGuiWindowFlags_NoResize
-	  | ImGuiWindowFlags_NoMove
-	  | ImGuiWindowFlags_NoCollapse
-	  | ImGuiWindowFlags_NoSavedSettings
-	  | ImGuiWindowFlags_MenuBar
-	  | ImGuiWindowFlags_NoDocking
-	  | ImGuiWindowFlags_NoBringToFrontOnFocus
-	  | ImGuiWindowFlags_NoNavFocus
-	  );
+	ImGui::Begin(INNER_WINDOW_MAIN_NAME, nullptr,
+	             ImGuiWindowFlags_NoTitleBar
+	             | ImGuiWindowFlags_NoResize
+	             | ImGuiWindowFlags_NoMove
+	             | ImGuiWindowFlags_NoCollapse
+	             | ImGuiWindowFlags_NoSavedSettings
+	             | ImGuiWindowFlags_MenuBar
+	             | ImGuiWindowFlags_NoDocking
+	             | ImGuiWindowFlags_NoBringToFrontOnFocus
+	             | ImGuiWindowFlags_NoNavFocus
+	);
 	ImGui::PopStyleVar(2);
 
+	// Show menu bar
 	if(ImGui::BeginMenuBar()){
 		if(ImGui::BeginMenu("Edit")){
 			if(ImGui::MenuItem("Theme", nullptr, &m_showThemeConfigWindow)){
@@ -171,29 +179,34 @@ void GUI::show() {
 		ImGui::EndMenuBar();
 	}
 
-	ImGuiID dockspace_id = ImGui::GetID("main dockspace");
+	ImGuiID dockspace_id = ImGui::GetID(MAIN_DOCKSPACE_NAME);
 	ImGuiContext* ctx = GImGui;
 	if (ImGui::DockBuilderGetNode(ctx, dockspace_id) == nullptr){
+		// Main dockspace initial setup
 		ImGui::DockBuilderRemoveNode(ctx, dockspace_id); // Clear out existing layout
 		ImGui::DockBuilderAddNode(ctx, dockspace_id, ImGui::GetMainViewport()->Size); // Add empty node
 
 		ImGuiID dock_main_id = dockspace_id;
 		ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(ctx, dock_main_id, ImGuiDir_Down, 0.30f, nullptr, &dock_main_id);
 
-		ImGui::DockBuilderDockWindow(ctx, "Explorer", dock_main_id);
-		ImGui::DockBuilderDockWindow(ctx, "Player", dock_id_bottom);
+		ImGui::DockBuilderDockWindow(ctx, INNER_WINDOW_EXPLORER_NAME, dock_main_id);
+		ImGui::DockBuilderDockWindow(ctx, INNER_WINDOW_PLAYER_NAME, dock_id_bottom);
 		ImGui::DockBuilderFinish(ctx, dockspace_id);
 		SPDLOG_DEBUG(m_logger, "Set initial position of windows in the main dockspace");
 	}
+
 	ImGui::DockSpace(dockspace_id);
 
-	ImGui::End(); // Main
+	ImGui::End();
+}
 
-	ImGui::Begin("Player");
+
+void GUI::showPlayer() {
+	ImGui::Begin(INNER_WINDOW_PLAYER_NAME);
 
 	if(m_musicInfos.valid){
-		ImGui::Separator();
 
+		// Show playing bar
 		constexpr float trac_min = 0.0f;
 		constexpr float trac_max = 100.0f;
 		float trac_pos = m_musicInfos.offset / m_musicInfos.duration * trac_max;
@@ -204,11 +217,13 @@ void GUI::show() {
 		}
 		ImGui::PopItemWidth();
 
+		// Show playing time
 		const int playingOffset_i = static_cast<int>(m_musicInfos.offset);
 		const int duration_i = static_cast<int>(m_musicInfos.duration);
 		ImGui::SameLine();
 		ImGui::LabelText("##time_post", "%02d:%02d / %02d:%02d", playingOffset_i / 60, playingOffset_i % 60, duration_i / 60, duration_i % 60);
 
+		// Show control buttons
 		ImGui::PushFont(m_large_font);
 		if(ImGui::Button(ICON_FA_PLAY)){
 			m_logger->info("Request to play/resume music");
@@ -225,9 +240,12 @@ void GUI::show() {
 			m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::STOP));
 		}
 		ImGui::PopFont();
+
+		// Show volume separator
+		ImGui::Separator();
 	}
 
-	ImGui::Separator();
+	// Show volume
 	ImGui::PushItemWidth(ImGui::GetFontSize() * -4);
 	if(ImGui::SliderFloat("volume", &m_volume, 0.f, 100.f, "%.1f")){
 		m_logger->info("Request to change volume to {:.2f}%", m_volume);
@@ -235,10 +253,13 @@ void GUI::show() {
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::End(); // Player
+	ImGui::End();
+}
 
-	ImGui::Begin("Explorer");
-	ImGui::LabelText("##TODOExplorer", "TODO: Explorer");
+void GUI::showExplorer() {
+	ImGui::Begin(INNER_WINDOW_EXPLORER_NAME);
+
+	// FIXME: temporary file path text filed
 	constexpr char const * const music_path_label_text = "Music file path:";
 	ImFont const * const font = ImGui::GetFont();
 	ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, FLT_MAX, music_path_label_text);
@@ -252,16 +273,14 @@ void GUI::show() {
 	ImGui::SameLine();
 	try_load_music |= ImGui::Button("load");
 
+	// Try to load music with user path
 	if(try_load_music){
 		const std::string file_path(m_music_file_path.data());
 		m_logger->info("Request to load music {}", file_path);
 		m_com.in.push_back(Msg::In::Load(file_path));
 	}
-	ImGui::End(); // Explorer
 
-	if(m_showThemeConfigWindow){
-		ImGui::ETheming::showThemeConfigWindow(&m_style, &m_showThemeConfigWindow);
-	}
+	ImGui::End(); // Explorer
 }
 
 ImFont* GUI::loadFonts(float pixel_size) {
@@ -329,4 +348,15 @@ void GUI::loadInitialConfig() {
 
 	m_com.in.push_back(Msg::In::Volume(false, m_volume));
 	SPDLOG_DEBUG(m_logger, "Sent initial config messages");
+}
+
+void GUI::processMessages() {
+	while(!m_com.out.empty()){
+		Msg::Com::OutMessage message_ = m_com.out.front();
+		std::visit([&](auto&& message) noexcept {
+			SPDLOG_TRACE(m_logger, "Received message {}", message);
+			handleMessage(message);
+		}, message_);
+		m_com.out.pop_front();
+	}
 }
