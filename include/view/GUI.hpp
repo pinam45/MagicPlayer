@@ -42,12 +42,15 @@ public:
 
 	explicit GUI(Msg::Com& com);
 
-	template<typename Message>
-	void handleMessage(Message& message) = delete;
-
 	int run();
 
 private:
+
+	template<typename Message>
+	void handleMessage(Message& message) = delete;
+
+	template<typename Message, typename... Args>
+	void sendMessage(Args&&... args);
 
 	void show();
 	void showMainDockspace();

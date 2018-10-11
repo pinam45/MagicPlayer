@@ -79,6 +79,11 @@ void GUI::handleMessage(Msg::Out::MusicInfo& message) {
 	m_musicInfos.duration = message.durationSeconds;
 }
 
+template<typename Message, typename... Args>
+void GUI::sendMessage(Args&&... args) {
+	m_com.in.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
+}
+
 int GUI::run() {
 	sf::Clock deltaClock;
 	sf::Clock musicOffsetClock;
@@ -113,7 +118,7 @@ int GUI::run() {
 
 		// Request music offset
 		if(m_musicInfos.valid && musicOffsetClock.getElapsedTime() > sf::seconds(MUSIC_OFFSET_REFRESH_SECONDS)){
-			m_com.in.push_back(Msg::In::RequestMusicOffset{});
+			sendMessage<Msg::In::RequestMusicOffset>();
 			musicOffsetClock.restart();
 		}
 
@@ -127,8 +132,8 @@ int GUI::run() {
 	}
 	SPDLOG_DEBUG(m_logger, "Main loop ended");
 
-	m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::STOP));
-	m_com.in.push_back(Msg::In::Close{});
+	sendMessage<Msg::In::Control>(Msg::In::Control::Action::STOP);
+	sendMessage<Msg::In::Close>();
 
 	ImGui::SFML::Shutdown();
 	SPDLOG_DEBUG(m_logger, "imgui-SFML shutdown");
@@ -213,7 +218,7 @@ void GUI::showPlayer() {
 		ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize() * 8);
 		if(ImGui::SliderScalar("##time", ImGuiDataType_Float, &trac_pos, &trac_min, &trac_max, "%.0f%%")){
 			m_logger->info("Request to set music offset to {:.2f} seconds", trac_pos / trac_max * m_musicInfos.duration);
-			m_com.in.push_back(Msg::In::MusicOffset(trac_pos / trac_max * m_musicInfos.duration));
+			sendMessage<Msg::In::MusicOffset>(trac_pos / trac_max * m_musicInfos.duration);
 		}
 		ImGui::PopItemWidth();
 
@@ -227,17 +232,17 @@ void GUI::showPlayer() {
 		ImGui::PushFont(m_large_font);
 		if(ImGui::Button(ICON_FA_PLAY)){
 			m_logger->info("Request to play/resume music");
-			m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::PLAY));
+			sendMessage<Msg::In::Control>(Msg::In::Control::Action::PLAY);
 		}
 		ImGui::SameLine();
 		if(ImGui::Button(ICON_FA_PAUSE)){
 			m_logger->info("Request to pause music");
-			m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::PAUSE));
+			sendMessage<Msg::In::Control>(Msg::In::Control::Action::PAUSE);
 		}
 		ImGui::SameLine();
 		if(ImGui::Button(ICON_FA_STOP)){
 			m_logger->info("Request to stop music");
-			m_com.in.push_back(Msg::In::Control(Msg::In::Control::Action::STOP));
+			sendMessage<Msg::In::Control>(Msg::In::Control::Action::STOP);
 		}
 		ImGui::PopFont();
 
@@ -249,7 +254,7 @@ void GUI::showPlayer() {
 	ImGui::PushItemWidth(ImGui::GetFontSize() * -4);
 	if(ImGui::SliderFloat("volume", &m_volume, 0.f, 100.f, "%.1f")){
 		m_logger->info("Request to change volume to {:.2f}%", m_volume);
-		m_com.in.push_back(Msg::In::Volume(false, m_volume));
+		sendMessage<Msg::In::Volume>(false, m_volume);
 	}
 	ImGui::PopItemWidth();
 
@@ -277,7 +282,7 @@ void GUI::showExplorer() {
 	if(try_load_music){
 		const std::string file_path(m_music_file_path.data());
 		m_logger->info("Request to load music {}", file_path);
-		m_com.in.push_back(Msg::In::Load(file_path));
+		sendMessage<Msg::In::Load>(file_path);
 	}
 
 	ImGui::End(); // Explorer
@@ -346,7 +351,7 @@ void GUI::loadInitialConfig() {
 	m_musicInfos.offset = 0;
 	m_musicInfos.duration = 0;
 
-	m_com.in.push_back(Msg::In::Volume(false, m_volume));
+	sendMessage<Msg::In::Volume>(false, m_volume);
 	SPDLOG_DEBUG(m_logger, "Sent initial config messages");
 }
 
