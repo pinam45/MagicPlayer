@@ -272,6 +272,7 @@ ImFont* GUI::loadFonts(float pixel_size) {
 		SPDLOG_DEBUG(m_logger, "Loaded font {} {:.2f}px", DEFAULT_FONT_PATH, pixel_size);
 	}
 	else{
+		io.Fonts->AddFontDefault();
 		m_logger->warn("Failed to load font {}: use default font instead", DEFAULT_FONT_PATH);
 	}
 
