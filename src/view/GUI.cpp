@@ -56,15 +56,9 @@ namespace {
 	constexpr const char* INNER_WINDOW_EXPLORER_NAME = "Explorer";
 }
 
-GUI::GUI(Msg::Com& com_)
-  : m_musicInfos()
-  , m_com(com_)
-  , m_showThemeConfigWindow(false)
-  , m_music_file_path()
-  , m_volume(MUSIC_INITIAL_VOLUME)
-  , m_style(ImGui::ETheming::ColorTheme::ArcDark)
-  , m_logger(spdlog::get(VIEW_LOGGER_NAME)) {
-
+template<typename Message, typename... Args>
+void GUI::sendMessage(Args&&... args) {
+	m_com.in.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
 }
 
 template<>
@@ -79,9 +73,15 @@ void GUI::handleMessage(Msg::Out::MusicInfo& message) {
 	m_musicInfos.duration = message.durationSeconds;
 }
 
-template<typename Message, typename... Args>
-void GUI::sendMessage(Args&&... args) {
-	m_com.in.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
+GUI::GUI(Msg::Com& com_)
+  : m_musicInfos()
+  , m_com(com_)
+  , m_showThemeConfigWindow(false)
+  , m_music_file_path()
+  , m_volume(MUSIC_INITIAL_VOLUME)
+  , m_style(ImGui::ETheming::ColorTheme::ArcDark)
+  , m_logger(spdlog::get(VIEW_LOGGER_NAME)) {
+
 }
 
 int GUI::run() {

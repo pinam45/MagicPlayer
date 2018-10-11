@@ -46,11 +46,11 @@ public:
 
 private:
 
-	template<typename Message>
-	void handleMessage(Message& message) = delete;
-
 	template<typename Message, typename... Args>
 	void sendMessage(Args&&... args);
+
+	template<typename Message>
+	void handleMessage(Message& message) = delete;
 
 	void show();
 	void showMainDockspace();
