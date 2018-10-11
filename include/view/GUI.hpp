@@ -53,10 +53,18 @@ private:
 
 	ImFont* loadFonts(float pixel_size);
 
+	void loadInitialConfig();
+
+	void setupImGui();
+	void setupFonts();
+	void setupStyle();
+
 	struct MusicInfos{
 		bool valid;
 		float offset;
 		float duration;
+
+		MusicInfos() noexcept = default;
 	};
 	MusicInfos m_musicInfos;
 

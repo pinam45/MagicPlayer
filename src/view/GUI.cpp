@@ -53,16 +53,14 @@ namespace {
 }
 
 GUI::GUI(Msg::Com& com_)
-  : m_com(com_)
+  : m_musicInfos()
+  , m_com(com_)
   , m_showThemeConfigWindow(false)
   , m_music_file_path()
   , m_volume(MUSIC_INITIAL_VOLUME)
   , m_style(ImGui::ETheming::ColorTheme::ArcDark)
   , m_logger(spdlog::get(VIEW_LOGGER_NAME)) {
 
-	m_musicInfos.valid = false;
-	m_musicInfos.offset = 0;
-	m_musicInfos.duration = 0;
 }
 
 template<>
@@ -88,28 +86,10 @@ int GUI::run() {
 	window.setFramerateLimit(FRAME_RATE_LIMIT);
 	ImGui::SFML::Init(window, false);
 
-	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable docking
-	io.ConfigDockingWithShift = false;
-	io.IniFilename = nullptr; // disable .ini saving
-	io.ConfigDockingWithShift = true;
-
-	m_normal_font = loadFonts(DEFAULT_FONT_SIZE);
-	m_large_font = loadFonts(LARGE_FONT_SIZE);
-
-	ImGui::SFML::UpdateFontTexture();
-	SPDLOG_DEBUG(m_logger, "Configured imgui");
-
-	//FIXME
-	ImGuiStyle& style = ImGui::GetStyle();
-	style.WindowRounding = 0.0f;
-	style.ScrollbarRounding = 0.0f;
-	ImGui::ETheming::setColorTheme(m_style);
-	SPDLOG_DEBUG(m_logger, "Setup style");
-
-	//Initial logic config
-	m_com.in.push_back(Msg::In::Volume(false, m_volume));
-	SPDLOG_DEBUG(m_logger, "Send initial config messages");
+	loadInitialConfig();
+	setupImGui();
+	setupFonts();
+	setupStyle();
 
 	while(window.isOpen())
 	{
@@ -310,4 +290,42 @@ ImFont* GUI::loadFonts(float pixel_size) {
 	}
 
 	return font;
+}
+
+void GUI::setupImGui() {
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable docking
+	io.ConfigDockingWithShift = true; // hold shift to use docking
+	io.IniFilename = nullptr; // disable .ini saving
+	SPDLOG_DEBUG(m_logger, "Setup ImGui");
+}
+
+void GUI::setupFonts() {
+	m_normal_font = loadFonts(DEFAULT_FONT_SIZE);
+	m_large_font = loadFonts(LARGE_FONT_SIZE);
+	ImGui::SFML::UpdateFontTexture();
+	SPDLOG_DEBUG(m_logger, "Setup fonts");
+}
+
+void GUI::setupStyle() {
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.WindowRounding = 0.0f;
+	style.ScrollbarRounding = 0.0f;
+	ImGui::ETheming::setColorTheme(m_style);
+	SPDLOG_DEBUG(m_logger, "Setup style");
+}
+
+void GUI::loadInitialConfig() {
+	// FIXME: load/save config from file
+
+	m_showThemeConfigWindow = false;
+	m_volume = MUSIC_INITIAL_VOLUME;
+	m_style = ImGui::ETheming::ColorTheme::ArcDark;
+
+	m_musicInfos.valid = false;
+	m_musicInfos.offset = 0;
+	m_musicInfos.duration = 0;
+
+	m_com.in.push_back(Msg::In::Volume(false, m_volume));
+	SPDLOG_DEBUG(m_logger, "Sent initial config messages");
 }
