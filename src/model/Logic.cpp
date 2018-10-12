@@ -58,7 +58,7 @@ template<>
 void Logic::handleMessage(Msg::In::Load& message) {
 	SPDLOG_DEBUG(m_logger, "Received load request: {}", message.path);
 	m_music.stop();
-	if(m_music.openFromFile(message.path)){
+	if(m_music.openFromFile(message.path.generic_string())){
 		m_logger->info("Loaded {}", message.path);
 		sendMessage<Msg::Out::MusicInfo>(true, m_music.getDuration().asSeconds());
 	}

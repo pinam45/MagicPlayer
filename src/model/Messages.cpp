@@ -38,7 +38,7 @@ Msg::details::ostream_config_guard::~ostream_config_guard() {
 	os.flags(flags);
 }
 
-Msg::In::Load::Load(std::string path_)
+Msg::In::Load::Load(std::filesystem::path path_)
   : path(std::move(path_)) {
 
 }

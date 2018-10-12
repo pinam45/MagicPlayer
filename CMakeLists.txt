@@ -84,6 +84,11 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 target_link_libraries(MagicPlayer PRIVATE Threads::Threads)
 
+# Link filesystem library for clang and gcc < 9.0
+if(CONFIG_COMPILER_CLANG OR (CMAKE_COMPILER_IS_GNUCXX AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)))
+	target_link_libraries(MagicPlayer PRIVATE stdc++fs)
+endif()
+
 # Build in C++17
 set_target_properties(
   MagicPlayer PROPERTIES

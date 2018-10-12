@@ -37,6 +37,7 @@
 #include <iomanip>
 #include <string>
 #include <variant>
+#include <filesystem>
 
 namespace Msg{
 
@@ -58,9 +59,9 @@ namespace Msg{
 		std::ostream& operator<<(std::ostream& os, const Close& m);
 
 		struct Load{
-			std::string path;
+			std::filesystem::path path;
 
-			explicit Load(std::string path);
+			explicit Load(std::filesystem::path path);
 		};
 		std::ostream& operator<<(std::ostream& os, const Load& m);
 
