@@ -72,7 +72,7 @@ template<>
 void Logic::handleMessage(Msg::In::Control& message) {
 	SPDLOG_DEBUG(m_logger, "Received control request: {}", message.action);
 	switch(message.action){
-		case Msg::In::Control::PLAY:
+		case Msg::In::Control::Action::PLAY:
 			if(m_music.getStatus() == sf::Music::Stopped){
 				// really stop music if just ended
 				m_music.stop();
@@ -80,11 +80,11 @@ void Logic::handleMessage(Msg::In::Control& message) {
 			m_music.play();
 			m_logger->info("Music played/resumed");
 			break;
-		case Msg::In::Control::PAUSE:
+		case Msg::In::Control::Action::PAUSE:
 			m_music.pause();
 			m_logger->info("Music paused");
 			break;
-		case Msg::In::Control::STOP:
+		case Msg::In::Control::Action::STOP:
 			m_music.stop();
 			m_logger->info("Music stopped");
 			break;

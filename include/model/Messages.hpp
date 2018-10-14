@@ -67,7 +67,7 @@ namespace Msg{
 
 
 		struct Control{
-			enum Action{
+			enum class Action{
 				PLAY,
 				PAUSE,
 				STOP,
@@ -147,12 +147,13 @@ inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Load& 
 }
 
 inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Control::Action& a){
+	// Not beautiful but only used for logging purpose...
 	constexpr const char* ACTION_STR[] = {
 	  "PLAY",
 	  "PAUSE",
 	  "STOP",
 	};
-	return os << ACTION_STR[a];
+	return os << ACTION_STR[static_cast<std::size_t>(a)];
 }
 
 inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Control& m){
