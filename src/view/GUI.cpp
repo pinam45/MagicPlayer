@@ -80,6 +80,8 @@ GUI::GUI(Msg::Com& com_)
   , m_music_file_path()
   , m_volume(MUSIC_INITIAL_VOLUME)
   , m_style(ImGui::ETheming::ColorTheme::ArcDark)
+  , m_normal_font(nullptr)
+  , m_large_font(nullptr)
   , m_logger(spdlog::get(VIEW_LOGGER_NAME)) {
 
 }

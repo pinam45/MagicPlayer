@@ -127,7 +127,12 @@ void Logic::handleMessage([[maybe_unused]] Msg::In::RequestMusicOffset& message)
 	sendMessage<Msg::Out::MusicOffset>(m_music.getPlayingOffset().asSeconds());
 }
 
-Logic::Logic() : m_end(false), m_logger(spdlog::get(LOGIC_LOGGER_NAME)) {
+Logic::Logic()
+  : m_com()
+  , m_end(false)
+  , m_music()
+  , m_logger(spdlog::get(LOGIC_LOGGER_NAME)) {
+
 	init_SFML();
 }
 
