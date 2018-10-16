@@ -34,6 +34,8 @@
 
 int main()
 {
+	std::ios_base::sync_with_stdio(false);
+
 	if(!init_logger()){
 		return EXIT_FAILURE;
 	}
