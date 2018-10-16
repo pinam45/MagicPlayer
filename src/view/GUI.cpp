@@ -187,18 +187,17 @@ void GUI::showMainDockspace() {
 	}
 
 	ImGuiID dockspace_id = ImGui::GetID(MAIN_DOCKSPACE_NAME);
-	ImGuiContext* ctx = GImGui;
-	if (ImGui::DockBuilderGetNode(ctx, dockspace_id) == nullptr){
+	if (ImGui::DockBuilderGetNode(dockspace_id) == nullptr){
 		// Main dockspace initial setup
-		ImGui::DockBuilderRemoveNode(ctx, dockspace_id); // Clear out existing layout
-		ImGui::DockBuilderAddNode(ctx, dockspace_id, ImGui::GetMainViewport()->Size); // Add empty node
+		ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
+		ImGui::DockBuilderAddNode(dockspace_id, ImGui::GetMainViewport()->Size); // Add empty node
 
 		ImGuiID dock_main_id = dockspace_id;
-		ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(ctx, dock_main_id, ImGuiDir_Down, 0.30f, nullptr, &dock_main_id);
+		ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.30f, nullptr, &dock_main_id);
 
-		ImGui::DockBuilderDockWindow(ctx, INNER_WINDOW_EXPLORER_NAME, dock_main_id);
-		ImGui::DockBuilderDockWindow(ctx, INNER_WINDOW_PLAYER_NAME, dock_id_bottom);
-		ImGui::DockBuilderFinish(ctx, dockspace_id);
+		ImGui::DockBuilderDockWindow(INNER_WINDOW_EXPLORER_NAME, dock_main_id);
+		ImGui::DockBuilderDockWindow(INNER_WINDOW_PLAYER_NAME, dock_id_bottom);
+		ImGui::DockBuilderFinish(dockspace_id);
 		SPDLOG_DEBUG(m_logger, "Set initial position of windows in the main dockspace");
 	}
 
