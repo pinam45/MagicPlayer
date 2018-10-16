@@ -72,10 +72,7 @@ template<typename T, bool atomic_size, typename Container>
 typename shared_queue<T, atomic_size, Container>::value_type& shared_queue<T, atomic_size, Container>::front()
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
-	while (m_queue.empty())
-	{
-		m_cond.wait(lock);
-	}
+	m_cond.wait(lock, [&m_queue = m_queue](){return !m_queue.empty();});
 	return m_queue.front();
 }
 
@@ -83,10 +80,7 @@ template<typename T, bool atomic_size, typename Container>
 void shared_queue<T, atomic_size, Container>::pop_front()
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
-	while (m_queue.empty())
-	{
-		m_cond.wait(lock);
-	}
+	m_cond.wait(lock, [&m_queue = m_queue](){return !m_queue.empty();});
 	if constexpr (atomic_size){
 		--m_size;
 	}
