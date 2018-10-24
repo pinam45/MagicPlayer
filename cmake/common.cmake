@@ -594,6 +594,7 @@ function(setup_msvc target)
 		  "/W4"
 
 		  ## Extra flags:
+		  "/w44263" # 'function': member function does not override any base class virtual member function
 		  "/w44265" # 'class': class has virtual functions, but destructor is not virtual
 		  "/w44287" # 'operator': unsigned/negative constant mismatch
 		  "/w44289" # nonstandard extension used : 'var' : loop control variable declared in the for-loop is used outside the for-loop scope
@@ -616,6 +617,20 @@ function(setup_msvc target)
 		  #"/w44640" # 'instance': construction of local static object is not thread-safe
 		  "/w44917" # 'declarator': a GUID can only be associated with a class, interface, or namespace
 		  "/w44946" # reinterpret_cast used between related classes: 'class1' and 'class2'
+		  "/w44986" # 'symbol': exception specification does not match previous declaration
+		  "/w44987" # nonstandard extension used: 'throw (...)'
+		  "/w44988" # 'symbol': variable declared outside class/function scope
+		  "/w45022" # 'type': multiple move constructors specified
+		  "/w45023" # 'type': multiple move assignment operators specified
+		  "/w45029" # nonstandard extension used: alignment attributes in C++ apply to variables, data members and tag types only
+		  "/w45031" # #pragma warning(pop): likely mismatch, popping warning state pushed in different file
+		  "/w45032" # detected #pragma warning(push) with no corresponding #pragma warning(pop)
+		  "/w45034" # use of intrinsic 'intrinsic' causes function function to be compiled as guest code
+		  "/w45035" # use of feature 'feature' causes function function to be compiled as guest code
+		  "/w45036" # varargs function pointer conversion when compiling with /hybrid:x86arm64 'type1' to 'type2'
+		  "/w45038" # data member 'member1' will be initialized after data member 'member2'
+		  "/w45039" # 'function': pointer or reference to potentially throwing function passed to extern C function under -EHc. Undefined behavior may occur if this function throws an exception.
+		  "/w45042" # 'function': function declarations at block scope cannot be specified 'inline' in standard C++; remove 'inline' specifier
 
 		  ## Apocalypse flags:
 		  #"/Wall"
@@ -645,7 +660,7 @@ function(setup_gcc target)
 	has_item(option_low_warnings "low_warnings" ${options})
 
 	# generates complete debugging information
-	target_add_compiler_flag(${target} "-g" DEBUG RELWITHDEBINFO)
+	target_add_compiler_flag(${target} "-g3" DEBUG RELWITHDEBINFO)
 
 	# set optimization
 	target_add_compiler_flag(${target} "-O0" DEBUG)
@@ -665,6 +680,10 @@ function(setup_gcc target)
 	#target_add_linker_flag(${target} "-fsanitize=undefined" DEBUG RELWITHDEBINFO)
 	#target_add_linker_flag(${target} "-fsanitize=leak" DEBUG RELWITHDEBINFO)
 
+	# enable libstdc++ "debug" mode
+	target_add_compile_definition(${target} _GLIBCXX_DEBUG DEBUG)
+	target_add_compile_definition(${target} _GLIBCXX_DEBUG_PEDANTIC DEBUG)
+
 	# manage warnings
 	set(flags)
 	set(c_flags)
@@ -677,6 +696,7 @@ function(setup_gcc target)
 		set(flags
 		  ## Base flags:
 		  "-pedantic"
+		  "-pedantic-errors"
 		  "-Wall"
 		  "-Wextra"
 
@@ -688,11 +708,6 @@ function(setup_gcc target)
 		  "-Wmissing-include-dirs"
 		  "-Wswitch-bool"
 		  "-Wswitch-unreachable"
-		  #"-Wsuggest-attribute=pure"
-		  #"-Wsuggest-attribute=const"
-		  #"-Wsuggest-attribute=noreturn"
-		  #"-Wsuggest-final-types"
-		  #"-Wsuggest-final-methods"
 		  "-Walloc-zero"
 		  "-Wduplicated-branches"
 		  "-Wduplicated-cond"
@@ -765,6 +780,9 @@ function(setup_gcc target)
 			  "-Wold-style-cast"
 			  "-Woverloaded-virtual"
 
+			  ## Lifetime
+			  "-Wlifetime"
+
 			  ## Suggestions
 			  "-Wsuggest-override"
 			  #"-Wsuggest-final-types"
@@ -810,7 +828,7 @@ function(setup_clang target)
 	has_item(option_low_warnings "low_warnings" ${options})
 
 	# generates complete debugging information
-	target_add_compiler_flag(${target} "-g" DEBUG RELWITHDEBINFO)
+	target_add_compiler_flag(${target} "-g3" DEBUG RELWITHDEBINFO)
 
 	# set optimization
 	target_add_compiler_flag(${target} "-O0" DEBUG)
@@ -830,6 +848,10 @@ function(setup_clang target)
 	#target_add_linker_flag(${target} "-fsanitize=undefined" DEBUG RELWITHDEBINFO)
 	#target_add_linker_flag(${target} "-fsanitize=leak" DEBUG RELWITHDEBINFO)
 
+	# enable libstdc++ "debug" mode
+	target_add_compile_definition(${target} _GLIBCXX_DEBUG DEBUG)
+	target_add_compile_definition(${target} _GLIBCXX_DEBUG_PEDANTIC DEBUG)
+
 	# manage warnings
 	set(flags)
 	if(option_no_warnings)
@@ -840,6 +862,7 @@ function(setup_clang target)
 		set(flags
 		  ## Base flags:
 		  "-pedantic"
+		  "-pedantic-errors"
 		  "-Wall"
 		  "-Wextra"
 
@@ -923,9 +946,15 @@ function(setup_clang target)
 		  "-Wzero-as-null-pointer-constant"
 		  "-Wzero-length-array"
 
+		  ## Lifetime
+		  "-Wlifetime"
+
 		  ## Info flags
 		  "-Wcomma"
 		  "-Wcomment"
+
+		  ## Exit on first error
+		  "-Wfatal-errors"
 		  )
 	endif()
 	foreach(flag ${flags})
