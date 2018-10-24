@@ -1,8 +1,14 @@
 message(STATUS "Configuring imgui-sfml")
 
+get_filename_component(IMGUI_DIR ${CMAKE_SOURCE_DIR}/deps/imgui ABSOLUTE)
 get_filename_component(IMGUI_SFML_DIR ${CMAKE_SOURCE_DIR}/deps/imgui-sfml ABSOLUTE)
+get_filename_component(IMGUI_SFML_TARGET_DIR ${CMAKE_CURRENT_BINARY_DIR}/imgui-sfml ABSOLUTE)
 
-# Submodule check
+# Submodules check
+directory_is_empty(is_empty "${IMGUI_DIR}")
+if(is_empty)
+	message(FATAL_ERROR "ImGui dependency is missing, maybe you didn't pull the git submodules")
+endif()
 directory_is_empty(is_empty "${IMGUI_SFML_DIR}")
 if(is_empty)
 	message(FATAL_ERROR "imgui-sfml dependency is missing, maybe you didn't pull the git submodules")
@@ -16,39 +22,30 @@ endif()
 if(NOT SFML_LIBRARY)
 	message(FATAL_ERROR "Missing SFML config")
 endif()
-if(NOT IMGUI_DIR OR NOT IMGUI_INCLUDE_DIR)
-	message(FATAL_ERROR "Missing imgui config")
-endif()
 
-message(STATUS "imgui configuration for SFML")
-if(NOT EXISTS "${IMGUI_DIR}/CMake_imgui_SFML_Config_Done")
-	set(tmp ${CMAKE_DISABLE_SOURCE_CHANGES})
-	set(CMAKE_DISABLE_SOURCE_CHANGES OFF)
-	file(READ "${IMGUI_SFML_DIR}/imconfig-SFML.h" imconfig-SFML_content)
-	file(APPEND "${IMGUI_DIR}/imconfig.h" "${imconfig-SFML_content}")
-	file(WRITE "${IMGUI_DIR}/CMake_imgui_SFML_Config_Done" "")
-	message(STATUS "imgui configuration for SFML - Done")
-	set(CMAKE_DISABLE_SOURCE_CHANGES ${tmp})
-else()
-	message(STATUS "imgui configuration for SFML - Already done")
-endif()
+# Copy imgui and imgui-sfml files to cmake build folder
+configure_folder(${IMGUI_DIR} ${IMGUI_SFML_TARGET_DIR} COPYONLY)
+configure_folder(${IMGUI_SFML_DIR} ${IMGUI_SFML_TARGET_DIR} COPYONLY)
+# Include imgui-sfml config header in imgui config header
+file(APPEND "${IMGUI_SFML_TARGET_DIR}/imconfig.h"
+  "\n#include \"imconfig-SFML.h\"\n"
+)
 
 # Setup target
 get_files(
   files
-  "${IMGUI_DIR}"
-  "${IMGUI_SFML_DIR}"
+  "${IMGUI_SFML_TARGET_DIR}"
 )
 make_target(
-  imgui-sfml "deps/imgui-sfml" ${files}
-  INCLUDES "${OPENGL_INCLUDE_DIR}" "${SFML_INCLUDE_DIR}" "${IMGUI_INCLUDE_DIR}" "${IMGUI_SFML_DIR}"
+  imgui-sfml "generated/deps/imgui-sfml" ${files}
+  INCLUDES "${OPENGL_INCLUDE_DIR}" "${SFML_INCLUDE_DIR}" "${IMGUI_SFML_TARGET_DIR}"
   OPTIONS cxx no_warnings
 )
 target_link_libraries(imgui-sfml PRIVATE "${SFML_LIBRARY}" "${OPENGL_LIBRARY}")
 target_compile_definitions(imgui-sfml PUBLIC IMGUI_DISABLE_OBSOLETE_FUNCTIONS)
 
 # Variables
-get_filename_component(IMGUI_SFML_INCLUDE_DIR  ${IMGUI_SFML_DIR}  ABSOLUTE)
+get_filename_component(IMGUI_SFML_INCLUDE_DIR  ${IMGUI_SFML_TARGET_DIR}  ABSOLUTE)
 set(IMGUI_SFML_LIBRARY imgui-sfml)
 
 # Message

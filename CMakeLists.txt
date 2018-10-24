@@ -17,7 +17,6 @@ include(cmake/config.cmake)
 # Libraries
 include(cmake/opengl.cmake)
 include(cmake/SFML.cmake)
-include(cmake/imgui.cmake)
 include(cmake/imgui-sfml.cmake)
 include(cmake/libmpg123.cmake)
 include(cmake/spdlog.cmake)
