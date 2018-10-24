@@ -31,10 +31,10 @@
 #include <SFML/Audio/SoundFileReader.hpp>
 #include <mpg123.h>
 
-class SoundFileReaderMp3 : public sf::SoundFileReader {
+class SoundFileReaderMp3 : public sf::SoundFileReader
+{
 
 public:
-
 	////////////////////////////////////////////////////////////
 	/// \brief Check if this reader can handle a file given by an input stream
 	///
@@ -45,9 +45,7 @@ public:
 	////////////////////////////////////////////////////////////
 	static bool check(sf::InputStream& stream);
 
-
 public:
-
 	////////////////////////////////////////////////////////////
 	/// \brief Copy constructor
 	///
@@ -110,7 +108,6 @@ public:
 	sf::Uint64 read(sf::Int16* samples, sf::Uint64 maxCount) override;
 
 private:
-
 	////////////////////////////////////////////////////////////
 	// Member data
 	////////////////////////////////////////////////////////////
@@ -118,6 +115,5 @@ private:
 	bool m_opened;
 	int m_channelCount;
 };
-
 
 #endif //SFML_EXTENSION_SOUNDFILEREADERMP3_HPP

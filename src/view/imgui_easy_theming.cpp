@@ -12,9 +12,10 @@
 
 #include <imgui.h>
 
-#define COUNT_OF(X) (sizeof(X)/sizeof(*(X)))
+#define COUNT_OF(X) (sizeof(X) / sizeof(*(X)))
 
-namespace ImGui::ETheming{
+namespace ImGui::ETheming
+{
 
 	// Arc Dark: https://github.com/horst3180/arc-theme
 	const ColorTheme ColorTheme::ArcDark{
@@ -56,6 +57,7 @@ namespace ImGui::ETheming{
 	{
 		ImGuiStyle& style = ImGui::GetStyle();
 
+		// clang-format off
 		style.Colors[ImGuiCol_Text] = ImVec4(theme.text.r, theme.text.g, theme.text.b, 1.00f);
 		style.Colors[ImGuiCol_TextDisabled] = ImVec4(theme.text.r, theme.text.g, theme.text.b, 0.58f);
 		style.Colors[ImGuiCol_WindowBg] = ImVec4(theme.body.r, theme.body.g, theme.body.b, 1.00f);
@@ -106,30 +108,40 @@ namespace ImGui::ETheming{
 		style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(theme.text.r, theme.text.g, theme.text.b, 1.00f);
 		style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(theme.text.r, theme.text.g, theme.text.b, 0.20f);
 		style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(theme.text.r, theme.text.g, theme.text.b, 0.35f);
+		// clang-format on
+
 		static_assert(ImGuiCol_COUNT == 50); // imgui 1.66 with docking
 	}
 
-	bool showThemeColorsChooser(ColorTheme* p_colorTheme){
+	bool showThemeColorsChooser(ColorTheme* p_colorTheme)
+	{
 		bool modified = false;
 
 		ImGui::PushItemWidth(ImGui::GetFontSize() * -3);
-		modified |= ImGui::ColorEdit3("Text", reinterpret_cast<float*>(&p_colorTheme->text), ImGuiColorEditFlags_NoAlpha);
-		modified |= ImGui::ColorEdit3("Head", reinterpret_cast<float*>(&p_colorTheme->head), ImGuiColorEditFlags_NoAlpha);
-		modified |= ImGui::ColorEdit3("Area", reinterpret_cast<float*>(&p_colorTheme->area), ImGuiColorEditFlags_NoAlpha);
-		modified |= ImGui::ColorEdit3("Body", reinterpret_cast<float*>(&p_colorTheme->body), ImGuiColorEditFlags_NoAlpha);
-		modified |= ImGui::ColorEdit3("Pops", reinterpret_cast<float*>(&p_colorTheme->pops), ImGuiColorEditFlags_NoAlpha);
+		modified |= ImGui::ColorEdit3(
+		  "Text", reinterpret_cast<float*>(&p_colorTheme->text), ImGuiColorEditFlags_NoAlpha);
+		modified |= ImGui::ColorEdit3(
+		  "Head", reinterpret_cast<float*>(&p_colorTheme->head), ImGuiColorEditFlags_NoAlpha);
+		modified |= ImGui::ColorEdit3(
+		  "Area", reinterpret_cast<float*>(&p_colorTheme->area), ImGuiColorEditFlags_NoAlpha);
+		modified |= ImGui::ColorEdit3(
+		  "Body", reinterpret_cast<float*>(&p_colorTheme->body), ImGuiColorEditFlags_NoAlpha);
+		modified |= ImGui::ColorEdit3(
+		  "Pops", reinterpret_cast<float*>(&p_colorTheme->pops), ImGuiColorEditFlags_NoAlpha);
 		ImGui::PopItemWidth();
 
 		return modified;
 	}
 
-	void showThemeColorsManager(ColorTheme* p_colorTheme){
+	void showThemeColorsManager(ColorTheme* p_colorTheme)
+	{
 		static bool auto_apply_style = false;
 		static bool apply_style = false;
 
 		apply_style = false;
 		bool modified = showThemeColorsChooser(p_colorTheme);
-		if(!auto_apply_style){
+		if(!auto_apply_style)
+		{
 			apply_style = ImGui::Button("Apply");
 			ImGui::SameLine();
 		}
@@ -137,12 +149,14 @@ namespace ImGui::ETheming{
 		ImGui::Checkbox("Auto apply style", &auto_apply_style);
 		apply_style |= !old_auto_apply_style && (old_auto_apply_style ^ auto_apply_style);
 
-		if(apply_style || (auto_apply_style && modified)){
+		if(apply_style || (auto_apply_style && modified))
+		{
 			setColorTheme(*p_colorTheme);
 		}
 	}
 
-	void showPredefinedThemeSelector(ColorTheme* p_colorTheme){
+	void showPredefinedThemeSelector(ColorTheme* p_colorTheme)
+	{
 		static const char* predefined_styles_names[] = {
 		  "Arc Dark",
 		  "Flat UI",
@@ -158,34 +172,42 @@ namespace ImGui::ETheming{
 		static int predefined_style_number = COUNT_OF(predefined_styles);
 
 		ImGui::PushItemWidth(ImGui::GetFontSize() * -4);
-		ImGui::Combo("##predefined_styles", &predefined_style_number, predefined_styles_names, COUNT_OF(predefined_styles_names));
+		ImGui::Combo("##predefined_styles",
+		             &predefined_style_number,
+		             predefined_styles_names,
+		             COUNT_OF(predefined_styles_names));
 		ImGui::SameLine();
-		if(ImGui::Button("Apply") && predefined_style_number < static_cast<int>(COUNT_OF(predefined_styles))){
+		if(ImGui::Button("Apply")
+		   && predefined_style_number < static_cast<int>(COUNT_OF(predefined_styles)))
+		{
 			setColorTheme(predefined_styles[predefined_style_number]);
 			*p_colorTheme = predefined_styles[predefined_style_number];
 		}
 		ImGui::PopItemWidth();
 	}
 
-	void showThemeConfigWindow(ColorTheme* p_colorTheme, bool* p_open){
+	void showThemeConfigWindow(ColorTheme* p_colorTheme, bool* p_open)
+	{
 		ImGui::SetNextWindowSize(ImVec2(320, 0), ImGuiCond_FirstUseEver);
-		if (!ImGui::Begin("Theme config", p_open))
+		if(!ImGui::Begin("Theme config", p_open))
 		{
 			ImGui::End();
 			return;
 		}
 
 		ImGui::SetNextTreeNodeOpen(true, ImGuiCond_Once);
-		if(ImGui::TreeNode("Predefined styles")){
+		if(ImGui::TreeNode("Predefined styles"))
+		{
 			showPredefinedThemeSelector(p_colorTheme);
 			ImGui::TreePop();
 		}
 		ImGui::SetNextTreeNodeOpen(true, ImGuiCond_Once);
-		if(ImGui::TreeNode("Custom Style")){
+		if(ImGui::TreeNode("Custom Style"))
+		{
 			showThemeColorsManager(p_colorTheme);
 			ImGui::TreePop();
 		}
 
 		ImGui::End();
 	}
-}
+} // namespace ImGui::ETheming

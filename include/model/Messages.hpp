@@ -8,7 +8,6 @@
 #ifndef MAGICPLAYER_MESSAGES_HPP
 #define MAGICPLAYER_MESSAGES_HPP
 
-
 #include "utils/shared_queue.hpp"
 
 #include <spdlog/spdlog.h>
@@ -20,35 +19,42 @@
 #include <variant>
 #include <filesystem>
 
-namespace Msg{
+namespace Msg
+{
 
-	namespace details{
-		struct ostream_config_guard{
+	namespace details
+	{
+		struct ostream_config_guard
+		{
 			std::ostream& os;
 			std::ios_base::fmtflags flags;
 
 			explicit ostream_config_guard(std::ostream& os);
 			~ostream_config_guard();
 		};
-	}
+	} // namespace details
 
-	namespace In{
+	namespace In
+	{
 
-		struct Close{
+		struct Close
+		{
 			//TODO: save?
 		};
 		std::ostream& operator<<(std::ostream& os, const Close& m);
 
-		struct Load{
+		struct Load
+		{
 			std::filesystem::path path;
 
 			explicit Load(std::filesystem::path path);
 		};
 		std::ostream& operator<<(std::ostream& os, const Load& m);
 
-
-		struct Control{
-			enum class Action{
+		struct Control
+		{
+			enum class Action
+			{
 				PLAY,
 				PAUSE,
 				STOP,
@@ -60,7 +66,8 @@ namespace Msg{
 		std::ostream& operator<<(std::ostream& os, const Control::Action& a);
 		std::ostream& operator<<(std::ostream& os, const Control& m);
 
-		struct Volume{
+		struct Volume
+		{
 			bool muted;
 			float volume;
 
@@ -68,66 +75,70 @@ namespace Msg{
 		};
 		std::ostream& operator<<(std::ostream& os, const Volume& m);
 
-		struct MusicOffset{
+		struct MusicOffset
+		{
 			float seconds;
 
 			explicit MusicOffset(float seconds);
 		};
 		std::ostream& operator<<(std::ostream& os, const MusicOffset& m);
 
-		struct RequestMusicOffset{
+		struct RequestMusicOffset
+		{
 			//TODO: general Request message with enum?
 		};
 		std::ostream& operator<<(std::ostream& os, const RequestMusicOffset& m);
-	}
+	} // namespace In
 
-	namespace Out{
+	namespace Out
+	{
 
-		struct MusicOffset{
+		struct MusicOffset
+		{
 			float seconds;
 
 			explicit MusicOffset(float seconds);
 		};
 		std::ostream& operator<<(std::ostream& os, const MusicOffset& m);
 
-		struct MusicInfo{
+		struct MusicInfo
+		{
 			bool valid;
 			float durationSeconds;
 
 			MusicInfo(bool valid, float durationSeconds);
 		};
 		std::ostream& operator<<(std::ostream& os, const MusicInfo& m);
-	}
+	} // namespace Out
 
-	struct Com{
-		typedef std::variant<
-		  In::Close,
-		  In::Load,
-		  In::Control,
-		  In::Volume,
-		  In::MusicOffset,
-		  In::RequestMusicOffset
-		> InMessage;
-		typedef std::variant<
-		  Out::MusicOffset,
-		  Out::MusicInfo
-		> OutMessage;
+	struct Com
+	{
+		typedef std::variant<In::Close,
+		                     In::Load,
+		                     In::Control,
+		                     In::Volume,
+		                     In::MusicOffset,
+		                     In::RequestMusicOffset>
+		  InMessage;
+		typedef std::variant<Out::MusicOffset, Out::MusicInfo> OutMessage;
 		shared_queue<InMessage> in;
 		shared_queue<OutMessage, true> out;
 	};
-}
+} // namespace Msg
 
-inline std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::In::Close& m){
+inline std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::In::Close& m)
+{
 	return os << "Close{}";
 }
 
-inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Load& m){
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Load& m)
+{
 	return os << "Load{"
-	          << "path: "<< m.path
-	          << "}";
+	          << "path: " << m.path << "}";
 }
 
-inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Control::Action& a){
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Control::Action& a)
+{
 	// Not beautiful but only used for logging purpose...
 	constexpr const char* ACTION_STR[] = {
 	  "PLAY",
@@ -137,43 +148,44 @@ inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Contro
 	return os << ACTION_STR[static_cast<std::size_t>(a)];
 }
 
-inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Control& m){
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Control& m)
+{
 	return os << "Control{"
-	          << "action: "<< m.action
-	          << "}";
+	          << "action: " << m.action << "}";
 }
 
-inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Volume& m){
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Volume& m)
+{
 	Msg::details::ostream_config_guard guard(os);
 	return os << "Volume{"
-	          << "muted: "<< m.muted << ","
-	          << "volume:" << m.volume
-	          << "}";
+	          << "muted: " << m.muted << ","
+	          << "volume:" << m.volume << "}";
 }
 
-inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::MusicOffset& m){
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::MusicOffset& m)
+{
 	return os << "MusicOffset{"
-	          << "seconds: "<< m.seconds
-	          << "}";
+	          << "seconds: " << m.seconds << "}";
 }
 
-inline std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::In::RequestMusicOffset& m){
+inline std::ostream& Msg::In::operator<<(std::ostream& os,
+                                         [[maybe_unused]] const Msg::In::RequestMusicOffset& m)
+{
 	return os << "RequestMusicOffset{}";
 }
 
-inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::MusicOffset& m){
+inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::MusicOffset& m)
+{
 	return os << "MusicOffset{"
-	          << "seconds: "<< m.seconds
-	          << "}";
+	          << "seconds: " << m.seconds << "}";
 }
 
-inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::MusicInfo& m){
+inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::MusicInfo& m)
+{
 	Msg::details::ostream_config_guard guard(os);
 	return os << "MusicInfo{"
-	          << "valid: "<< m.valid << ","
-	          << "durationSeconds:" << m.durationSeconds
-	          << "}";
+	          << "valid: " << m.valid << ","
+	          << "durationSeconds:" << m.durationSeconds << "}";
 }
-
 
 #endif //MAGICPLAYER_MESSAGES_HPP

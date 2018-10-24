@@ -8,7 +8,6 @@
 #ifndef MAGICPLAYER_GUI_HPP
 #define MAGICPLAYER_GUI_HPP
 
-
 #include "model/Messages.hpp"
 #include "imgui_easy_theming.hpp"
 
@@ -17,16 +16,15 @@
 
 #include <array>
 
-class GUI {
+class GUI
+{
 
 public:
-
 	explicit GUI(Msg::Com& com);
 
 	int run();
 
 private:
-
 	template<typename Message, typename... Args>
 	void sendMessage(Args&&... args);
 
@@ -48,7 +46,8 @@ private:
 
 	void processMessages();
 
-	struct MusicInfos{
+	struct MusicInfos
+	{
 		bool valid;
 		float offset;
 		float duration;
@@ -67,6 +66,5 @@ private:
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };
-
 
 #endif //MAGICPLAYER_GUI_HPP

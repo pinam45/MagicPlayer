@@ -11,8 +11,8 @@
 #ifndef IMGUI_EASY_THEMING_HPP
 #define IMGUI_EASY_THEMING_HPP
 
-
-namespace ImGui::ETheming{
+namespace ImGui::ETheming
+{
 
 	struct Color
 	{
@@ -63,37 +63,26 @@ namespace ImGui::ETheming{
 	void showPredefinedThemeSelector(ColorTheme* p_colorTheme);
 
 	void showThemeConfigWindow(ColorTheme* p_colorTheme, bool* p_open);
-}
+} // namespace ImGui::ETheming
 
+namespace ImGui::ETheming
+{
 
-namespace ImGui::ETheming{
-
-	constexpr Color::Color(
-	  int r_,
-	  int g_,
-	  int b_
-	) noexcept
+	constexpr Color::Color(int r_, int g_, int b_) noexcept
 	  : r(static_cast<float>(r_) / 255.f)
 	  , g(static_cast<float>(g_) / 255.f)
 	  , b(static_cast<float>(b_) / 255.f)
 	{
 	}
 
-	constexpr ColorTheme::ColorTheme(
-	  Color text_,
-	  Color head_,
-	  Color area_,
-	  Color body_,
-	  Color pops_
-	) noexcept
-	  : text(text_)
-	  , head(head_)
-	  , area(area_)
-	  , body(body_)
-	  , pops(pops_)
+	constexpr ColorTheme::ColorTheme(Color text_,
+	                                 Color head_,
+	                                 Color area_,
+	                                 Color body_,
+	                                 Color pops_) noexcept
+	  : text(text_), head(head_), area(area_), body(body_), pops(pops_)
 	{
 	}
-}
-
+} // namespace ImGui::ETheming
 
 #endif //IMGUI_EASY_THEMING_HPP

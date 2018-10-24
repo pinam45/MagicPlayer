@@ -8,16 +8,15 @@
 #ifndef MAGICPLAYER_LOGIC_HPP
 #define MAGICPLAYER_LOGIC_HPP
 
-
 #include "Messages.hpp"
 
 #include <SFML/Audio/Music.hpp>
 #include <spdlog/logger.h>
 
-class Logic {
+class Logic
+{
 
 public:
-
 	Logic();
 
 	Msg::Com& getCom();
@@ -25,7 +24,6 @@ public:
 	void run();
 
 private:
-
 	template<typename Message, typename... Args>
 	void sendMessage(Args&&... args);
 
@@ -38,6 +36,5 @@ private:
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };
-
 
 #endif //MAGICPLAYER_LOGIC_HPP

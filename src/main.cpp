@@ -17,12 +17,13 @@ int main()
 {
 	std::ios_base::sync_with_stdio(false);
 
-	if(!init_logger()){
+	if(!init_logger())
+	{
 		return EXIT_FAILURE;
 	}
 
 	Logic logic;
-	std::thread logicThread([&](){logic.run();});
+	std::thread logicThread([&]() { logic.run(); });
 
 	GUI gui(logic.getCom());
 	gui.run();

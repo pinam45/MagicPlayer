@@ -19,7 +19,8 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <spdlog/spdlog.h>
 
-namespace {
+namespace
+{
 	constexpr const char* WINDOW_NAME = "MagicPlayer";
 	constexpr unsigned int WINDOW_INITIAL_WIDTH = 600;
 	constexpr unsigned int WINDOW_INITIAL_HEIGHT = 400;
@@ -27,7 +28,8 @@ namespace {
 	constexpr float MUSIC_OFFSET_REFRESH_SECONDS = 0.1f;
 	constexpr unsigned int FRAME_RATE_LIMIT = 60;
 	constexpr const char* DROID_SANS_MONO_FONT_PATH = "resources/fonts/DroidSans/DroidSansMono.ttf";
-	constexpr const char* FONTAWESOME_FONT_PATH = "resources/fonts/fontawesome-free-5.4.0/" FONT_ICON_FILE_NAME_FAS;
+	constexpr const char* FONTAWESOME_FONT_PATH =
+	  "resources/fonts/fontawesome-free-5.4.0/" FONT_ICON_FILE_NAME_FAS;
 	constexpr const char* DEFAULT_FONT_PATH = DROID_SANS_MONO_FONT_PATH;
 	constexpr float DEFAULT_FONT_SIZE = 13.5f;
 	constexpr float LARGE_FONT_SIZE = 22.0f;
@@ -35,20 +37,23 @@ namespace {
 	constexpr const char* MAIN_DOCKSPACE_NAME = "Main dockspace";
 	constexpr const char* INNER_WINDOW_PLAYER_NAME = "Player";
 	constexpr const char* INNER_WINDOW_EXPLORER_NAME = "Explorer";
-}
+} // namespace
 
 template<typename Message, typename... Args>
-void GUI::sendMessage(Args&&... args) {
+void GUI::sendMessage(Args&&... args)
+{
 	m_com.in.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
 }
 
 template<>
-void GUI::handleMessage(Msg::Out::MusicOffset& message) {
+void GUI::handleMessage(Msg::Out::MusicOffset& message)
+{
 	m_musicInfos.offset = message.seconds;
 }
 
 template<>
-void GUI::handleMessage(Msg::Out::MusicInfo& message) {
+void GUI::handleMessage(Msg::Out::MusicInfo& message)
+{
 	m_musicInfos.valid = message.valid;
 	m_musicInfos.offset = 0; //FIXME?
 	m_musicInfos.duration = message.durationSeconds;
@@ -63,18 +68,17 @@ GUI::GUI(Msg::Com& com_)
   , m_style(ImGui::ETheming::ColorTheme::ArcDark)
   , m_normal_font(nullptr)
   , m_large_font(nullptr)
-  , m_logger(spdlog::get(VIEW_LOGGER_NAME)) {
-
+  , m_logger(spdlog::get(VIEW_LOGGER_NAME))
+{
 }
 
-int GUI::run() {
+int GUI::run()
+{
 	sf::Clock deltaClock;
 	sf::Clock musicOffsetClock;
 
-	sf::RenderWindow window(
-	  sf::VideoMode(WINDOW_INITIAL_WIDTH, WINDOW_INITIAL_HEIGHT),
-	  WINDOW_NAME
-	);
+	sf::RenderWindow window(sf::VideoMode(WINDOW_INITIAL_WIDTH, WINDOW_INITIAL_HEIGHT),
+	                        WINDOW_NAME);
 	window.setFramerateLimit(FRAME_RATE_LIMIT);
 	ImGui::SFML::Init(window, false);
 
@@ -100,7 +104,9 @@ int GUI::run() {
 		processMessages();
 
 		// Request music offset
-		if(m_musicInfos.valid && musicOffsetClock.getElapsedTime() > sf::seconds(MUSIC_OFFSET_REFRESH_SECONDS)){
+		if(m_musicInfos.valid
+		   && musicOffsetClock.getElapsedTime() > sf::seconds(MUSIC_OFFSET_REFRESH_SECONDS))
+		{
 			sendMessage<Msg::In::RequestMusicOffset>();
 			musicOffsetClock.restart();
 		}
@@ -123,18 +129,21 @@ int GUI::run() {
 	return EXIT_SUCCESS;
 }
 
-void GUI::show() {
+void GUI::show()
+{
 
 	showMainDockspace();
 	showPlayer();
 	showExplorer();
 
-	if(m_showThemeConfigWindow){
+	if(m_showThemeConfigWindow)
+	{
 		ImGui::ETheming::showThemeConfigWindow(&m_style, &m_showThemeConfigWindow);
 	}
 }
 
-void GUI::showMainDockspace() {
+void GUI::showMainDockspace()
+{
 
 	// Open "full-windowed" imgui window
 	ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -143,23 +152,21 @@ void GUI::showMainDockspace() {
 	ImGui::SetNextWindowViewport(viewport->ID);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	ImGui::Begin(INNER_WINDOW_MAIN_NAME, nullptr,
-	             ImGuiWindowFlags_NoTitleBar
-	             | ImGuiWindowFlags_NoResize
-	             | ImGuiWindowFlags_NoMove
-	             | ImGuiWindowFlags_NoCollapse
-	             | ImGuiWindowFlags_NoSavedSettings
-	             | ImGuiWindowFlags_MenuBar
-	             | ImGuiWindowFlags_NoDocking
-	             | ImGuiWindowFlags_NoBringToFrontOnFocus
-	             | ImGuiWindowFlags_NoNavFocus
-	);
+	ImGui::Begin(INNER_WINDOW_MAIN_NAME,
+	             nullptr,
+	             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
+	               | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings
+	               | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking
+	               | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus);
 	ImGui::PopStyleVar(2);
 
 	// Show menu bar
-	if(ImGui::BeginMenuBar()){
-		if(ImGui::BeginMenu("Edit")){
-			if(ImGui::MenuItem("Theme", nullptr, &m_showThemeConfigWindow)){
+	if(ImGui::BeginMenuBar())
+	{
+		if(ImGui::BeginMenu("Edit"))
+		{
+			if(ImGui::MenuItem("Theme", nullptr, &m_showThemeConfigWindow))
+			{
 				SPDLOG_DEBUG(m_logger, "Show theme config window");
 			}
 			ImGui::EndMenu();
@@ -168,13 +175,15 @@ void GUI::showMainDockspace() {
 	}
 
 	ImGuiID dockspace_id = ImGui::GetID(MAIN_DOCKSPACE_NAME);
-	if (ImGui::DockBuilderGetNode(dockspace_id) == nullptr){
+	if(ImGui::DockBuilderGetNode(dockspace_id) == nullptr)
+	{
 		// Main dockspace initial setup
 		ImGui::DockBuilderRemoveNode(dockspace_id); // Clear out existing layout
 		ImGui::DockBuilderAddNode(dockspace_id, ImGui::GetMainViewport()->Size); // Add empty node
 
 		ImGuiID dock_main_id = dockspace_id;
-		ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.30f, nullptr, &dock_main_id);
+		ImGuiID dock_id_bottom =
+		  ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.30f, nullptr, &dock_main_id);
 
 		ImGui::DockBuilderDockWindow(INNER_WINDOW_EXPLORER_NAME, dock_main_id);
 		ImGui::DockBuilderDockWindow(INNER_WINDOW_PLAYER_NAME, dock_id_bottom);
@@ -187,19 +196,23 @@ void GUI::showMainDockspace() {
 	ImGui::End();
 }
 
-
-void GUI::showPlayer() {
+void GUI::showPlayer()
+{
 	ImGui::Begin(INNER_WINDOW_PLAYER_NAME);
 
-	if(m_musicInfos.valid){
+	if(m_musicInfos.valid)
+	{
 
 		// Show playing bar
 		constexpr float trac_min = 0.0f;
 		constexpr float trac_max = 100.0f;
 		float trac_pos = m_musicInfos.offset / m_musicInfos.duration * trac_max;
 		ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize() * 8);
-		if(ImGui::SliderScalar("##time", ImGuiDataType_Float, &trac_pos, &trac_min, &trac_max, "%.0f%%")){
-			m_logger->info("Request to set music offset to {:.2f} seconds", trac_pos / trac_max * m_musicInfos.duration);
+		if(ImGui::SliderScalar(
+		     "##time", ImGuiDataType_Float, &trac_pos, &trac_min, &trac_max, "%.0f%%"))
+		{
+			m_logger->info("Request to set music offset to {:.2f} seconds",
+			               trac_pos / trac_max * m_musicInfos.duration);
 			sendMessage<Msg::In::MusicOffset>(trac_pos / trac_max * m_musicInfos.duration);
 		}
 		ImGui::PopItemWidth();
@@ -208,21 +221,29 @@ void GUI::showPlayer() {
 		const int playingOffset_i = static_cast<int>(m_musicInfos.offset);
 		const int duration_i = static_cast<int>(m_musicInfos.duration);
 		ImGui::SameLine();
-		ImGui::LabelText("##time_post", "%02d:%02d / %02d:%02d", playingOffset_i / 60, playingOffset_i % 60, duration_i / 60, duration_i % 60);
+		ImGui::LabelText("##time_post",
+		                 "%02d:%02d / %02d:%02d",
+		                 playingOffset_i / 60,
+		                 playingOffset_i % 60,
+		                 duration_i / 60,
+		                 duration_i % 60);
 
 		// Show control buttons
 		ImGui::PushFont(m_large_font);
-		if(ImGui::Button(ICON_FA_PLAY)){
+		if(ImGui::Button(ICON_FA_PLAY))
+		{
 			m_logger->info("Request to play/resume music");
 			sendMessage<Msg::In::Control>(Msg::In::Control::Action::PLAY);
 		}
 		ImGui::SameLine();
-		if(ImGui::Button(ICON_FA_PAUSE)){
+		if(ImGui::Button(ICON_FA_PAUSE))
+		{
 			m_logger->info("Request to pause music");
 			sendMessage<Msg::In::Control>(Msg::In::Control::Action::PAUSE);
 		}
 		ImGui::SameLine();
-		if(ImGui::Button(ICON_FA_STOP)){
+		if(ImGui::Button(ICON_FA_STOP))
+		{
 			m_logger->info("Request to stop music");
 			sendMessage<Msg::In::Control>(Msg::In::Control::Action::STOP);
 		}
@@ -234,7 +255,8 @@ void GUI::showPlayer() {
 
 	// Show volume
 	ImGui::PushItemWidth(ImGui::GetFontSize() * -4);
-	if(ImGui::SliderFloat("volume", &m_volume, 0.f, 100.f, "%.1f")){
+	if(ImGui::SliderFloat("volume", &m_volume, 0.f, 100.f, "%.1f"))
+	{
 		m_logger->info("Request to change volume to {:.2f}%", m_volume);
 		sendMessage<Msg::In::Volume>(false, m_volume);
 	}
@@ -243,25 +265,31 @@ void GUI::showPlayer() {
 	ImGui::End();
 }
 
-void GUI::showExplorer() {
+void GUI::showExplorer()
+{
 	ImGui::Begin(INNER_WINDOW_EXPLORER_NAME);
 
 	// FIXME: temporary file path text filed
-	constexpr char const * const music_path_label_text = "Music file path:";
-	ImFont const * const font = ImGui::GetFont();
+	constexpr char const* const music_path_label_text = "Music file path:";
+	ImFont const* const font = ImGui::GetFont();
 	ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, FLT_MAX, music_path_label_text);
 	ImGui::PushItemWidth(text_size.x);
 	ImGui::LabelText("##file_path_pre", "%s", music_path_label_text);
 	ImGui::PopItemWidth();
 	ImGui::SameLine();
-	ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - text_size.x - 4 * ImGui::GetFontSize());
-	bool try_load_music = ImGui::InputText("##file_path", m_music_file_path.data(), m_music_file_path.size(), ImGuiInputTextFlags_EnterReturnsTrue);
+	ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - text_size.x
+	                     - 4 * ImGui::GetFontSize());
+	bool try_load_music = ImGui::InputText("##file_path",
+	                                       m_music_file_path.data(),
+	                                       m_music_file_path.size(),
+	                                       ImGuiInputTextFlags_EnterReturnsTrue);
 	ImGui::PopItemWidth();
 	ImGui::SameLine();
 	try_load_music |= ImGui::Button("load");
 
 	// Try to load music with user path
-	if(try_load_music){
+	if(try_load_music)
+	{
 		const std::string file_path(m_music_file_path.data());
 		m_logger->info("Request to load music {}", file_path);
 		sendMessage<Msg::In::Load>(file_path);
@@ -270,28 +298,34 @@ void GUI::showExplorer() {
 	ImGui::End(); // Explorer
 }
 
-ImFont* GUI::loadFonts(float pixel_size) {
+ImFont* GUI::loadFonts(float pixel_size)
+{
 	ImGuiIO& io = ImGui::GetIO();
 
 	ImFont* default_font = io.Fonts->AddFontFromFileTTF(DEFAULT_FONT_PATH, pixel_size);
-	if(default_font){
+	if(default_font)
+	{
 		SPDLOG_DEBUG(m_logger, "Loaded font {} {:.2f}px", DEFAULT_FONT_PATH, pixel_size);
 	}
-	else{
+	else
+	{
 		io.Fonts->AddFontDefault();
 		m_logger->warn("Failed to load font {}: use default font instead", DEFAULT_FONT_PATH);
 	}
 
-	static constexpr ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+	static constexpr ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
 	ImFontConfig icons_config;
 	icons_config.MergeMode = true;
 	icons_config.PixelSnapH = true;
 	icons_config.GlyphMinAdvanceX = pixel_size;
-	ImFont* font = io.Fonts->AddFontFromFileTTF(FONTAWESOME_FONT_PATH, pixel_size, &icons_config, icons_ranges);
-	if(font){
+	ImFont* font =
+	  io.Fonts->AddFontFromFileTTF(FONTAWESOME_FONT_PATH, pixel_size, &icons_config, icons_ranges);
+	if(font)
+	{
 		SPDLOG_DEBUG(m_logger, "Loaded font {} {:.2f}px", FONTAWESOME_FONT_PATH, pixel_size);
 	}
-	else{
+	else
+	{
 		m_logger->warn("Failed to load fontawesome ({}): icons disabled", FONTAWESOME_FONT_PATH);
 		font = default_font;
 	}
@@ -299,7 +333,8 @@ ImFont* GUI::loadFonts(float pixel_size) {
 	return font;
 }
 
-void GUI::setupImGui() {
+void GUI::setupImGui()
+{
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Enable docking
 	io.ConfigDockingWithShift = true; // hold shift to use docking
@@ -307,14 +342,16 @@ void GUI::setupImGui() {
 	SPDLOG_DEBUG(m_logger, "Setup ImGui");
 }
 
-void GUI::setupFonts() {
+void GUI::setupFonts()
+{
 	m_normal_font = loadFonts(DEFAULT_FONT_SIZE);
 	m_large_font = loadFonts(LARGE_FONT_SIZE);
 	ImGui::SFML::UpdateFontTexture();
 	SPDLOG_DEBUG(m_logger, "Setup fonts");
 }
 
-void GUI::setupStyle() {
+void GUI::setupStyle()
+{
 	ImGuiStyle& style = ImGui::GetStyle();
 	style.WindowRounding = 0.0f;
 	style.ScrollbarRounding = 0.0f;
@@ -322,7 +359,8 @@ void GUI::setupStyle() {
 	SPDLOG_DEBUG(m_logger, "Setup style");
 }
 
-void GUI::loadInitialConfig() {
+void GUI::loadInitialConfig()
+{
 	// FIXME: load/save config from file
 
 	m_showThemeConfigWindow = false;
@@ -337,13 +375,17 @@ void GUI::loadInitialConfig() {
 	SPDLOG_DEBUG(m_logger, "Sent initial config messages");
 }
 
-void GUI::processMessages() {
-	while(!m_com.out.empty()){
+void GUI::processMessages()
+{
+	while(!m_com.out.empty())
+	{
 		Msg::Com::OutMessage message_ = m_com.out.front();
-		std::visit([&](auto&& message) noexcept {
-			SPDLOG_TRACE(m_logger, "Received message {}", message);
-			handleMessage(message);
-		}, message_);
+		std::visit(
+		  [&](auto&& message) noexcept {
+			  SPDLOG_TRACE(m_logger, "Received message {}", message);
+			  handleMessage(message);
+		  },
+		  message_);
 		m_com.out.pop_front();
 	}
 }
