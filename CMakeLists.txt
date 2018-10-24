@@ -14,6 +14,9 @@ include(cmake/common.cmake)
 # Config
 include(cmake/config.cmake)
 
+# clang-format
+include(cmake/clang-format.cmake)
+
 # Libraries
 include(cmake/opengl.cmake)
 include(cmake/SFML.cmake)
@@ -119,6 +122,9 @@ target_add_compile_definition(MagicPlayer ENABLE_CONSOLE_LOG)
 # Enable debug / trace logs
 target_add_compile_definition(MagicPlayer SPDLOG_DEBUG_ON RELWITHDEBINFO DEBUG)
 #target_add_compile_definition(MagicPlayer SPDLOG_TRACE_ON DEBUG)
+
+# Generate format target
+target_generate_clang_format(MagicPlayer)
 
 # Verbose makefile
 #set(CMAKE_VERBOSE_MAKEFILE ON)
