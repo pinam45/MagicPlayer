@@ -681,8 +681,11 @@ function(setup_gcc target)
 	#target_add_linker_flag(${target} "-fsanitize=leak" DEBUG RELWITHDEBINFO)
 
 	# enable libstdc++ "debug" mode
-	target_add_compile_definition(${target} _GLIBCXX_DEBUG DEBUG)
-	target_add_compile_definition(${target} _GLIBCXX_DEBUG_PEDANTIC DEBUG)
+	# warning: changes the size of some standard class templates
+	# you cannot pass containers between translation units compiled
+	# with and without libstdc++ "debug" mode
+	#target_add_compile_definition(${target} _GLIBCXX_DEBUG DEBUG)
+	#target_add_compile_definition(${target} _GLIBCXX_DEBUG_PEDANTIC DEBUG)
 
 	# manage warnings
 	set(flags)
@@ -849,8 +852,11 @@ function(setup_clang target)
 	#target_add_linker_flag(${target} "-fsanitize=leak" DEBUG RELWITHDEBINFO)
 
 	# enable libstdc++ "debug" mode
-	target_add_compile_definition(${target} _GLIBCXX_DEBUG DEBUG)
-	target_add_compile_definition(${target} _GLIBCXX_DEBUG_PEDANTIC DEBUG)
+	# warning: changes the size of some standard class templates
+	# you cannot pass containers between translation units compiled
+	# with and without libstdc++ "debug" mode
+	#target_add_compile_definition(${target} _GLIBCXX_DEBUG DEBUG)
+	#target_add_compile_definition(${target} _GLIBCXX_DEBUG_PEDANTIC DEBUG)
 
 	# manage warnings
 	set(flags)
