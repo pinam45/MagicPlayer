@@ -57,6 +57,18 @@ void GUI::handleMessage(Msg::Out::MusicInfo& message)
 	m_musicInfos.valid = message.valid;
 	m_musicInfos.offset = 0; //FIXME?
 	m_musicInfos.duration = message.durationSeconds;
+	m_logger->info("Received music information: valid = {}, duration = {:.2f} seconds",
+	               m_musicInfos.valid,
+	               m_musicInfos.duration);
+}
+
+template<>
+void GUI::handleMessage(Msg::Out::FolderContent& message)
+{
+	m_explorer_path = message.path;
+	m_explorer_content = message.content;
+	m_logger->info(
+	  "Received folder {} content: {} files/folders", message.path, message.content.size());
 }
 
 GUI::GUI(Msg::Com& com_)
@@ -68,6 +80,8 @@ GUI::GUI(Msg::Com& com_)
   , m_style(ImGui::ETheming::ColorTheme::ArcDark)
   , m_normal_font(nullptr)
   , m_large_font(nullptr)
+  , m_explorer_path("./")
+  , m_explorer_content()
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
 {
 }
@@ -131,7 +145,6 @@ int GUI::run()
 
 void GUI::show()
 {
-
 	showMainDockspace();
 	showPlayer();
 	showExplorer();
@@ -279,21 +292,40 @@ void GUI::showExplorer()
 	ImGui::SameLine();
 	ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - text_size.x
 	                     - 4 * ImGui::GetFontSize());
-	bool try_load_music = ImGui::InputText("##file_path",
-	                                       m_music_file_path.data(),
-	                                       m_music_file_path.size(),
-	                                       ImGuiInputTextFlags_EnterReturnsTrue);
+	bool try_open = ImGui::InputText("##file_path",
+	                                 m_music_file_path.data(),
+	                                 m_music_file_path.size(),
+	                                 ImGuiInputTextFlags_EnterReturnsTrue);
 	ImGui::PopItemWidth();
 	ImGui::SameLine();
-	try_load_music |= ImGui::Button("load");
+	try_open |= ImGui::Button("open");
 
-	// Try to load music with user path
-	if(try_load_music)
+	if(try_open)
 	{
-		const std::string file_path(m_music_file_path.data());
-		m_logger->info("Request to load music {}", file_path);
-		sendMessage<Msg::In::Load>(file_path);
+		std::filesystem::path file_path(m_music_file_path.data());
+		m_logger->info("Request to open {}", file_path);
+		sendMessage<Msg::In::Open>(std::move(file_path));
 	}
+
+	if(ImGui::BeginChild("Content"))
+	{
+		for(const PathInfo& info: m_explorer_content)
+		{
+			if(info.is_folder)
+			{
+				ImGui::Text(ICON_FA_FOLDER " %s", info.file_name.c_str());
+			}
+			else
+			{
+				ImGui::Text(ICON_FA_FILE " %s", info.file_name.c_str());
+			}
+			if(ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(0))
+			{
+				sendMessage<Msg::In::Open>(info.path);
+			}
+		}
+	}
+	ImGui::EndChild();
 
 	ImGui::End(); // Explorer
 }
@@ -372,6 +404,7 @@ void GUI::loadInitialConfig()
 	m_musicInfos.duration = 0;
 
 	sendMessage<Msg::In::Volume>(false, m_volume);
+	sendMessage<Msg::In::Open>(m_explorer_path);
 	SPDLOG_DEBUG(m_logger, "Sent initial config messages");
 }
 

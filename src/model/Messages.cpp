@@ -18,7 +18,7 @@ Msg::details::ostream_config_guard::~ostream_config_guard()
 	os.flags(flags);
 }
 
-Msg::In::Load::Load(std::filesystem::path path_): path(std::move(path_))
+Msg::In::Open::Open(std::filesystem::path path_): path(std::move(path_))
 {
 }
 
@@ -40,5 +40,17 @@ Msg::Out::MusicOffset::MusicOffset(float seconds_): seconds(seconds_)
 
 Msg::Out::MusicInfo::MusicInfo(bool valid_, float durationSeconds_)
   : valid(valid_), durationSeconds(durationSeconds_)
+{
+}
+
+Msg::Out::FolderContent::FolderContent(std::filesystem::path path_,
+                                       const std::vector<PathInfo>& content_)
+  : path(std::move(path_)), content(content_)
+{
+}
+
+Msg::Out::FolderContent::FolderContent(std::filesystem::path path_,
+                                       std::vector<PathInfo>&& content_)
+  : path(std::move(path_)), content(std::move(content_))
 {
 }

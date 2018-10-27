@@ -9,6 +9,7 @@
 #define MAGICPLAYER_MESSAGES_HPP
 
 #include "utils/shared_queue.hpp"
+#include "model/PathInfo.hpp"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -19,9 +20,10 @@
 #include <variant>
 #include <filesystem>
 
+//TODO: add id to messages to make request/answer connection
+
 namespace Msg
 {
-
 	namespace details
 	{
 		struct ostream_config_guard
@@ -43,13 +45,13 @@ namespace Msg
 		};
 		std::ostream& operator<<(std::ostream& os, const Close& m);
 
-		struct Load
+		struct Open
 		{
 			std::filesystem::path path;
 
-			explicit Load(std::filesystem::path path);
+			explicit Open(std::filesystem::path path);
 		};
-		std::ostream& operator<<(std::ostream& os, const Load& m);
+		std::ostream& operator<<(std::ostream& os, const Open& m);
 
 		struct Control
 		{
@@ -85,9 +87,13 @@ namespace Msg
 
 		struct RequestMusicOffset
 		{
-			//TODO: general Request message with enum?
 		};
 		std::ostream& operator<<(std::ostream& os, const RequestMusicOffset& m);
+
+		struct InnerTaskEnded
+		{
+		};
+		std::ostream& operator<<(std::ostream& os, const InnerTaskEnded& m);
 	} // namespace In
 
 	namespace Out
@@ -109,18 +115,28 @@ namespace Msg
 			MusicInfo(bool valid, float durationSeconds);
 		};
 		std::ostream& operator<<(std::ostream& os, const MusicInfo& m);
+
+		struct FolderContent
+		{
+			std::filesystem::path path;
+			std::vector<PathInfo> content;
+
+			FolderContent(std::filesystem::path path, const std::vector<PathInfo>& content = {});
+			FolderContent(std::filesystem::path path, std::vector<PathInfo>&& content);
+		};
 	} // namespace Out
 
 	struct Com
 	{
 		typedef std::variant<In::Close,
-		                     In::Load,
+		                     In::Open,
 		                     In::Control,
 		                     In::Volume,
 		                     In::MusicOffset,
-		                     In::RequestMusicOffset>
+		                     In::RequestMusicOffset,
+		                     In::InnerTaskEnded>
 		  InMessage;
-		typedef std::variant<Out::MusicOffset, Out::MusicInfo> OutMessage;
+		typedef std::variant<Out::MusicOffset, Out::MusicInfo, Out::FolderContent> OutMessage;
 		shared_queue<InMessage> in;
 		shared_queue<OutMessage, true> out;
 	};
@@ -131,9 +147,9 @@ inline std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] cons
 	return os << "Close{}";
 }
 
-inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Load& m)
+inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Open& m)
 {
-	return os << "Load{"
+	return os << "Open{"
 	          << "path: " << m.path << "}";
 }
 
@@ -172,6 +188,12 @@ inline std::ostream& Msg::In::operator<<(std::ostream& os,
                                          [[maybe_unused]] const Msg::In::RequestMusicOffset& m)
 {
 	return os << "RequestMusicOffset{}";
+}
+
+inline std::ostream& Msg::In::operator<<(std::ostream& os,
+                                         [[maybe_unused]] const Msg::In::InnerTaskEnded& m)
+{
+	return os << "InnerTaskEnded{}";
 }
 
 inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::MusicOffset& m)

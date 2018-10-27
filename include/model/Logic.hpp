@@ -13,11 +13,15 @@
 #include <SFML/Audio/Music.hpp>
 #include <spdlog/logger.h>
 
-class Logic
+#include <future>
+
+class Logic final
 {
 
 public:
 	Logic();
+
+	~Logic();
 
 	Msg::Com& getCom();
 
@@ -30,9 +34,14 @@ private:
 	template<typename Message>
 	void handleMessage(Message& message) = delete;
 
+	void loadFile(std::filesystem::path path);
+
+	void sendFolderContent(std::filesystem::path path);
+
 	Msg::Com m_com;
 	bool m_end;
 	sf::Music m_music;
+	std::vector<std::future<void>> m_pending_futures; //TODO: change collection?
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };

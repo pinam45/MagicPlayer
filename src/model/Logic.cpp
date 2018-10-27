@@ -13,6 +13,9 @@
 #include <SFML/Audio/SoundFileFactory.hpp>
 #include <spdlog/spdlog.h>
 
+#include <thread>
+#include <future>
+
 namespace
 {
 	std::once_flag SFML_inited;
@@ -40,20 +43,28 @@ void Logic::handleMessage([[maybe_unused]] Msg::In::Close& message)
 }
 
 template<>
-void Logic::handleMessage(Msg::In::Load& message)
+void Logic::handleMessage(Msg::In::Open& message)
 {
-	SPDLOG_DEBUG(m_logger, "Received load request: {}", message.path);
-	m_music.stop();
-	if(m_music.openFromFile(message.path.generic_string()))
+	SPDLOG_DEBUG(m_logger, "Received open request: {}", message.path);
+
+	if(std::filesystem::is_regular_file(message.path))
 	{
-		m_logger->info("Loaded {}", message.path);
-		sendMessage<Msg::Out::MusicInfo>(true, m_music.getDuration().asSeconds());
+		loadFile(message.path);
+		return;
 	}
-	else
+
+	if(std::filesystem::is_directory(message.path))
 	{
-		m_logger->warn("Failed to load {}", message.path);
-		sendMessage<Msg::Out::MusicInfo>(false, 0);
+		auto process = [this](const std::filesystem::path path) noexcept
+		{
+			sendFolderContent(path);
+			m_com.in.push_back(Msg::In::InnerTaskEnded{});
+		};
+		m_pending_futures.push_back(std::async(std::launch::async, process, message.path));
+		return;
 	}
+
+	m_logger->warn("Open request on invalid file/folder {}", message.path);
 }
 
 template<>
@@ -129,10 +140,37 @@ void Logic::handleMessage([[maybe_unused]] Msg::In::RequestMusicOffset& message)
 	sendMessage<Msg::Out::MusicOffset>(m_music.getPlayingOffset().asSeconds());
 }
 
-Logic::Logic(): m_com(), m_end(false), m_music(), m_logger(spdlog::get(LOGIC_LOGGER_NAME))
+template<>
+void Logic::handleMessage([[maybe_unused]] Msg::In::InnerTaskEnded& message)
+{
+	auto it = std::find_if(m_pending_futures.begin(),
+	                       m_pending_futures.end(),
+	                       [](const std::future<void>& future) { return future.valid(); });
+	if(it == std::end(m_pending_futures))
+	{
+		m_logger->warn("Task ended message received but no valid future found");
+		return;
+	}
+	m_pending_futures.erase(it);
+	SPDLOG_TRACE(m_logger, "Inner task ended: erased future");
+}
+
+Logic::Logic()
+  : m_com(), m_end(false), m_music(), m_pending_futures(), m_logger(spdlog::get(LOGIC_LOGGER_NAME))
 {
 
 	init_SFML();
+}
+
+Logic::~Logic()
+{
+	SPDLOG_DEBUG(m_logger, "Start ending all background tasks");
+	for(const std::future<void>& future: m_pending_futures)
+	{
+		SPDLOG_TRACE(m_logger, "Waiting on pending futures");
+		future.wait();
+	}
+	SPDLOG_DEBUG(m_logger, "All background tasks ended");
 }
 
 Msg::Com& Logic::getCom()
@@ -154,4 +192,61 @@ void Logic::run()
 		m_com.in.pop_front();
 	}
 	SPDLOG_DEBUG(m_logger, "Main loop ended");
+}
+
+void Logic::loadFile(std::filesystem::path path)
+{
+	if(m_music.openFromFile(path.generic_string()))
+	{
+		m_music.play();
+		m_logger->info("Loaded {}", path);
+		m_logger->info("Music played");
+		sendMessage<Msg::Out::MusicInfo>(true, m_music.getDuration().asSeconds());
+	}
+	else
+	{
+		m_logger->warn("Failed to load {}", path);
+		sendMessage<Msg::Out::MusicInfo>(false, 0);
+	}
+}
+
+void Logic::sendFolderContent(std::filesystem::path path)
+{
+	std::vector<PathInfo> path_infos;
+	std::error_code error;
+	for(const std::filesystem::directory_entry& entry:
+	    std::filesystem::directory_iterator(path, error))
+	{
+		PathInfo infos;
+		infos.path = entry.path();
+		if(entry.is_directory(error))
+		{
+			infos.is_folder = true;
+			if(infos.path.has_filename())
+			{
+				infos.file_name = infos.path.filename();
+			}
+			else
+			{
+				infos.file_name = infos.path.parent_path().filename();
+			}
+		}
+		else if(entry.is_regular_file(error))
+		{
+			infos.file_name = infos.path.filename();
+			infos.file_size = entry.file_size(error);
+			//TODO:has_supported_audio_extension
+		}
+		else
+		{
+			continue;
+		}
+		path_infos.push_back(std::move(infos));
+	}
+	std::sort(
+	  path_infos.begin(), path_infos.end(), [](const PathInfo& lhs, const PathInfo& rhs) noexcept {
+		  return std::make_tuple(!lhs.is_folder, lhs.file_name)
+		         < std::make_tuple(!rhs.is_folder, rhs.file_name);
+	  });
+	sendMessage<Msg::Out::FolderContent>(path, std::move(path_infos));
 }

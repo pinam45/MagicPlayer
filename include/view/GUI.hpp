@@ -16,7 +16,7 @@
 
 #include <array>
 
-class GUI
+class GUI final
 {
 
 public:
@@ -63,6 +63,9 @@ private:
 	ImGui::ETheming::ColorTheme m_style;
 	ImFont* m_normal_font;
 	ImFont* m_large_font;
+
+	std::filesystem::path m_explorer_path;
+	std::vector<PathInfo> m_explorer_content;
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };
