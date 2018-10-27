@@ -65,23 +65,20 @@ void GUI::handleMessage(Msg::Out::MusicInfo& message)
 template<>
 void GUI::handleMessage(Msg::Out::FolderContent& message)
 {
-	m_explorer_path = message.path;
-	m_explorer_content = message.content;
 	m_logger->info(
 	  "Received folder {} content: {} files/folders", message.path, message.content.size());
+	m_file_explorer.processMessage(message);
 }
 
 GUI::GUI(Msg::Com& com_)
   : m_musicInfos()
   , m_com(com_)
   , m_showThemeConfigWindow(false)
-  , m_music_file_path()
   , m_volume(MUSIC_INITIAL_VOLUME)
   , m_style(ImGui::ETheming::ColorTheme::ArcDark)
   , m_normal_font(nullptr)
   , m_large_font(nullptr)
-  , m_explorer_path("./")
-  , m_explorer_content()
+  , m_file_explorer(INNER_WINDOW_EXPLORER_NAME, m_com.in)
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
 {
 }
@@ -147,7 +144,7 @@ void GUI::show()
 {
 	showMainDockspace();
 	showPlayer();
-	showExplorer();
+	m_file_explorer.show();
 
 	if(m_showThemeConfigWindow)
 	{
@@ -215,7 +212,6 @@ void GUI::showPlayer()
 
 	if(m_musicInfos.valid)
 	{
-
 		// Show playing bar
 		constexpr float trac_min = 0.0f;
 		constexpr float trac_max = 100.0f;
@@ -276,58 +272,6 @@ void GUI::showPlayer()
 	ImGui::PopItemWidth();
 
 	ImGui::End();
-}
-
-void GUI::showExplorer()
-{
-	ImGui::Begin(INNER_WINDOW_EXPLORER_NAME);
-
-	// FIXME: temporary file path text filed
-	constexpr char const* const music_path_label_text = "Music file path:";
-	ImFont const* const font = ImGui::GetFont();
-	ImVec2 text_size = font->CalcTextSizeA(font->FontSize, FLT_MAX, FLT_MAX, music_path_label_text);
-	ImGui::PushItemWidth(text_size.x);
-	ImGui::LabelText("##file_path_pre", "%s", music_path_label_text);
-	ImGui::PopItemWidth();
-	ImGui::SameLine();
-	ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - text_size.x
-	                     - 4 * ImGui::GetFontSize());
-	bool try_open = ImGui::InputText("##file_path",
-	                                 m_music_file_path.data(),
-	                                 m_music_file_path.size(),
-	                                 ImGuiInputTextFlags_EnterReturnsTrue);
-	ImGui::PopItemWidth();
-	ImGui::SameLine();
-	try_open |= ImGui::Button("open");
-
-	if(try_open)
-	{
-		std::filesystem::path file_path(m_music_file_path.data());
-		m_logger->info("Request to open {}", file_path);
-		sendMessage<Msg::In::Open>(std::move(file_path));
-	}
-
-	if(ImGui::BeginChild("Content"))
-	{
-		for(const PathInfo& info: m_explorer_content)
-		{
-			if(info.is_folder)
-			{
-				ImGui::Text(ICON_FA_FOLDER " %s", info.file_name.c_str());
-			}
-			else
-			{
-				ImGui::Text(ICON_FA_FILE " %s", info.file_name.c_str());
-			}
-			if(ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(0))
-			{
-				sendMessage<Msg::In::Open>(info.path);
-			}
-		}
-	}
-	ImGui::EndChild();
-
-	ImGui::End(); // Explorer
 }
 
 ImFont* GUI::loadFonts(float pixel_size)
@@ -403,8 +347,9 @@ void GUI::loadInitialConfig()
 	m_musicInfos.offset = 0;
 	m_musicInfos.duration = 0;
 
+	m_file_explorer.init();
+
 	sendMessage<Msg::In::Volume>(false, m_volume);
-	sendMessage<Msg::In::Open>(m_explorer_path);
 	SPDLOG_DEBUG(m_logger, "Sent initial config messages");
 }
 

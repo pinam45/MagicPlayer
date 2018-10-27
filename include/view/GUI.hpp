@@ -9,7 +9,8 @@
 #define MAGICPLAYER_GUI_HPP
 
 #include "model/Messages.hpp"
-#include "imgui_easy_theming.hpp"
+#include "view/imgui_easy_theming.hpp"
+#include "view/FileExplorer.hpp"
 
 #include <imgui.h>
 #include <spdlog/logger.h>
@@ -34,7 +35,6 @@ private:
 	void show();
 	void showMainDockspace();
 	void showPlayer();
-	void showExplorer();
 
 	ImFont* loadFonts(float pixel_size);
 
@@ -58,14 +58,12 @@ private:
 
 	Msg::Com& m_com;
 	bool m_showThemeConfigWindow;
-	std::array<char, 2018> m_music_file_path;
 	float m_volume;
 	ImGui::ETheming::ColorTheme m_style;
 	ImFont* m_normal_font;
 	ImFont* m_large_font;
 
-	std::filesystem::path m_explorer_path;
-	std::vector<PathInfo> m_explorer_content;
+	FileExplorer m_file_explorer;
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };
