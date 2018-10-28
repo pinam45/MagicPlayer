@@ -33,11 +33,16 @@ private:
 	shared_queue<Msg::Com::InMessage>& m_com_in;
 
 	std::string m_name;
-	std::array<char, 2018> m_music_file_path;
+	std::array<char, 2018> m_user_path;
 	std::filesystem::path m_path;
 	std::vector<PathInfo> m_content;
-	std::vector<std::string> m_formated_content;
+	std::vector<std::string> m_formatted_content;
 	std::size_t selected_content;
+	std::vector<std::string> m_split_path;
+	std::vector<std::string> m_sub_paths;
+	std::size_t m_displayable_split_paths;
+	float m_last_available_width;
+	int m_text_field_focus_state;
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };
