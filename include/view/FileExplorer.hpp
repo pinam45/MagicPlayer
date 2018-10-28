@@ -36,6 +36,8 @@ private:
 	std::array<char, 2018> m_music_file_path;
 	std::filesystem::path m_path;
 	std::vector<PathInfo> m_content;
+	std::vector<std::string> m_formated_content;
+	std::size_t selected_content;
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };

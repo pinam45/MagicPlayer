@@ -28,6 +28,8 @@ FileExplorer::FileExplorer(std::string name, shared_queue<Msg::Com::InMessage>& 
   , m_music_file_path()
   , m_path(DEFAULT_PATH)
   , m_content()
+  , m_formated_content()
+  , selected_content(std::numeric_limits<std::size_t>::max())
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
 {
 }
@@ -68,23 +70,23 @@ void FileExplorer::show()
 
 	if(ImGui::BeginChild("Content"))
 	{
-		for(const PathInfo& info: m_content)
+		for(std::size_t i = 0; i < m_formated_content.size(); ++i)
 		{
-			if(info.is_folder)
+			if(ImGui::Selectable(m_formated_content[i].c_str(), (i == selected_content)))
 			{
-				ImGui::Text(ICON_FA_FOLDER " %s", info.file_name.c_str());
-			}
-			else
-			{
-				ImGui::Text(ICON_FA_FILE " %s", info.file_name.c_str());
+				selected_content = i;
 			}
 			if(ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(0))
 			{
-				sendMessage<Msg::In::Open>(info.path);
+				sendMessage<Msg::In::Open>(m_content[i].path);
 			}
 		}
 	}
 	ImGui::EndChild();
+	if(ImGui::IsItemClicked())
+	{
+		selected_content = m_content.size();
+	}
 
 	ImGui::End(); // Explorer
 }
@@ -93,4 +95,18 @@ void FileExplorer::processMessage(Msg::Out::FolderContent& message)
 {
 	m_path = message.path;
 	m_content = message.content;
+
+	m_formated_content.clear();
+	for(const PathInfo& info: m_content)
+	{
+		if(info.is_folder)
+		{
+			m_formated_content.push_back(std::string(ICON_FA_FOLDER) + " " + info.file_name);
+		}
+		else
+		{
+			m_formated_content.push_back(std::string(ICON_FA_FILE) + " " + info.file_name);
+		}
+	}
+	selected_content = m_content.size();
 }
