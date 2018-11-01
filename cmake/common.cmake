@@ -539,6 +539,9 @@ function(setup_msvc target)
 	has_item(option_no_warnings "no_warnings" ${options})
 	has_item(option_low_warnings "low_warnings" ${options})
 
+	# set Source and Executable character sets to UTF-8
+	target_add_compiler_flag(${target} "/utf-8")
+
 	# enable parallel compilation
 	target_add_compiler_flag(${target} "/MP")
 
