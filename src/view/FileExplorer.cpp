@@ -12,6 +12,8 @@
 #include <imgui.h>
 #include <IconsFontAwesome5.h>
 
+#include <sstream>
+
 namespace
 {
 	constexpr const char* DEFAULT_PATH = "./";
@@ -31,7 +33,6 @@ FileExplorer::FileExplorer(std::string name, shared_queue<Msg::Com::InMessage>& 
   , m_content()
   , m_formatted_content()
   , selected_content(std::numeric_limits<std::size_t>::max())
-  , m_split_path()
   , m_sub_paths()
   , m_displayable_split_paths(0)
   , m_last_available_width(0.0f)
@@ -60,9 +61,9 @@ void FileExplorer::show()
 			m_last_available_width = available_width;
 			float used_width = ImGui::GetWindowPos().x + compute_text_width(ICON_FA_CHEVRON_RIGHT);
 			m_displayable_split_paths = 0;
-			for(auto it = m_split_path.rbegin(); it != m_split_path.rend(); ++it)
+			for(auto it = m_sub_paths.rbegin(); it != m_sub_paths.rend(); ++it)
 			{
-				used_width += compute_text_width(it->c_str());
+				used_width += compute_text_width(std::get<0>(*it).c_str());
 				if(used_width > available_width)
 				{
 					break;
@@ -73,7 +74,7 @@ void FileExplorer::show()
 
 		// Display hidden folders
 		ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_ChildBg]);
-		if(m_displayable_split_paths < m_split_path.size())
+		if(m_displayable_split_paths < m_sub_paths.size())
 		{
 			if(ImGui::Button(ICON_FA_CHEVRON_RIGHT))
 			{
@@ -81,11 +82,11 @@ void FileExplorer::show()
 			}
 			if(ImGui::BeginPopup("Hidden folders"))
 			{
-				for(std::size_t i = 0; i < m_split_path.size() - m_displayable_split_paths; ++i)
+				for(std::size_t i = 0; i < m_sub_paths.size() - m_displayable_split_paths; ++i)
 				{
-					if(ImGui::MenuItem(m_split_path[i].c_str()))
+					if(ImGui::MenuItem(std::get<0>(m_sub_paths[i]).c_str()))
 					{
-						sendMessage<Msg::In::Open>(m_sub_paths[i]);
+						sendMessage<Msg::In::Open>(std::get<1>(m_sub_paths[i]));
 					}
 				}
 				ImGui::EndPopup();
@@ -94,13 +95,12 @@ void FileExplorer::show()
 		}
 
 		// Display visible folders
-		for(std::size_t i = m_split_path.size() - m_displayable_split_paths;
-		    i < m_split_path.size();
+		for(std::size_t i = m_sub_paths.size() - m_displayable_split_paths; i < m_sub_paths.size();
 		    ++i)
 		{
-			if(ImGui::Button(m_split_path[i].c_str()))
+			if(ImGui::Button(std::get<0>(m_sub_paths[i]).c_str()))
 			{
-				sendMessage<Msg::In::Open>(m_sub_paths[i]);
+				sendMessage<Msg::In::Open>(std::get<1>(m_sub_paths[i]));
 			}
 			ImGui::SameLine(0, 0);
 		}
@@ -118,9 +118,17 @@ void FileExplorer::show()
 		                    m_user_path.size(),
 		                    ImGuiInputTextFlags_EnterReturnsTrue))
 		{
-			std::filesystem::path file_path(m_user_path.data());
-			m_logger->info("Request to open {}", file_path);
-			sendMessage<Msg::In::Open>(std::move(file_path));
+			std::filesystem::path file_path;
+			if(utf8_string_to_path(m_user_path.data(), file_path))
+			{
+				m_logger->info("Request to open {}", file_path);
+				sendMessage<Msg::In::Open>(std::move(file_path));
+			}
+			else
+			{
+				m_logger->warn("Inputed path contain invalid utf8 characters: {}",
+				               invalid_utf8_path_representation(m_user_path.data()));
+			}
 		}
 		if(!ImGui::IsItemActive())
 		{
@@ -130,7 +138,13 @@ void FileExplorer::show()
 	}
 	else if(m_text_field_focus_state == 1)
 	{
-		std::string path = m_path.generic_string();
+		std::string path;
+		if(!path_to_generic_utf8_string(m_path, path))
+		{
+			path = path_to_generic_utf8_string(m_path);
+			m_logger->warn("Current path contain invalid utf8 characters: {}",
+			               invalid_utf8_path_representation(m_user_path.data()));
+		}
 		std::strncpy(m_user_path.data(), path.data(), m_user_path.size());
 		m_user_path[std::max(path.size(), m_user_path.size() - 1)] = '\0';
 
@@ -177,8 +191,61 @@ void FileExplorer::show()
 
 void FileExplorer::processMessage(Msg::Out::FolderContent& message)
 {
-	m_path = std::filesystem::canonical(message.path);
+	std::error_code error;
+	std::filesystem::path path = std::filesystem::canonical(message.path, error);
+	if(error)
+	{
+		SPDLOG_DEBUG(m_logger, "std::filesystem::canonical failed: {}", error.message());
+		m_logger->warn("Failed to get canonical path of folder {}", path);
+		return;
+	}
+
+	std::string path_str;
+	if(!path_to_generic_utf8_string(path, path_str))
+	{
+		m_logger->warn("Received content of folder with invalid utf8 path: {}",
+		               invalid_utf8_path_representation(path));
+		return;
+	}
+
+	// Generate sub paths
+	std::vector<std::tuple<std::string, std::filesystem::path>> sub_paths;
+	std::string sub_path;
+	std::string path_part;
+	std::stringstream path_stream(path_str);
+	while(std::getline(path_stream, path_part, '/'))
+	{
+		if(path_part.empty())
+		{
+			// For Linux root folder
+			sub_path.append("/");
+			path_part = "Root";
+		}
+		else
+		{
+			sub_path.append(path_part);
+			sub_path.append("/");
+		}
+		sub_paths.emplace_back(path_part, utf8_string_to_path(sub_path));
+	}
+
+	if(!sub_paths.empty())
+	{
+		for(std::size_t i = 0; i < sub_paths.size() - 1; ++i)
+		{
+			std::get<0>(sub_paths[i]) += " " ICON_FA_CHEVRON_RIGHT;
+		}
+	}
+
+	// Apply modifications
+	m_path = std::move(path);
+	m_sub_paths = std::move(sub_paths);
 	m_content = message.content;
+	selected_content = m_content.size();
+
+	m_displayable_split_paths = m_sub_paths.size();
+	m_last_available_width = 0.0f;
+	m_text_field_focus_state = 0;
 
 	// Generate formatted content list
 	m_formatted_content.clear();
@@ -193,36 +260,4 @@ void FileExplorer::processMessage(Msg::Out::FolderContent& message)
 			m_formatted_content.push_back(std::string(ICON_FA_FILE) + " " + info.file_name);
 		}
 	}
-	selected_content = m_content.size();
-
-	// Generate split paths and sub-paths
-	m_split_path.clear();
-	m_sub_paths.clear();
-	std::stringstream path_stream(m_path.generic_string());
-	std::string path_part;
-	std::filesystem::path sub_path;
-	while(std::getline(path_stream, path_part, '/'))
-	{
-		if(path_part.empty())
-		{
-			sub_path.append("/");
-			path_part = "Root";
-		}
-		else
-		{
-			sub_path.append(path_part);
-		}
-		m_split_path.push_back(path_part);
-		m_sub_paths.push_back(sub_path);
-	}
-
-	for(std::size_t i = 0; i < m_split_path.size() - 1; ++i)
-	{
-		m_split_path[i] += " " ICON_FA_CHEVRON_RIGHT;
-	}
-
-	// Reset states
-	m_displayable_split_paths = m_split_path.size();
-	m_last_available_width = 0.0f;
-	m_text_field_focus_state = 0;
 }

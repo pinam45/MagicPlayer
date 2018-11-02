@@ -47,13 +47,33 @@ void Logic::handleMessage(Msg::In::Open& message)
 {
 	SPDLOG_DEBUG(m_logger, "Received open request: {}", message.path);
 
-	if(std::filesystem::is_regular_file(message.path))
+	std::error_code error;
+	if(!std::filesystem::exists(message.path, error))
+	{
+		if(error)
+		{
+			SPDLOG_DEBUG(m_logger, "std::filesystem::exists failed: {}", error.message());
+			m_logger->warn("Check if file/folder exist failed for {}", message.path);
+		}
+		else
+		{
+			m_logger->warn("Open request non-existing file/folder {}", message.path);
+		}
+		return;
+	}
+
+	if(std::filesystem::is_regular_file(message.path, error))
 	{
 		loadFile(message.path);
 		return;
 	}
+	if(error)
+	{
+		SPDLOG_DEBUG(m_logger, "std::filesystem::is_regular_file failed: {}", error.message());
+		m_logger->warn("Check if path is a regular file failed for: {}", message.path);
+	}
 
-	if(std::filesystem::is_directory(message.path))
+	if(std::filesystem::is_directory(message.path, error))
 	{
 		auto process = [this](const std::filesystem::path path) noexcept
 		{
@@ -62,6 +82,11 @@ void Logic::handleMessage(Msg::In::Open& message)
 		};
 		m_pending_futures.push_back(std::async(std::launch::async, process, message.path));
 		return;
+	}
+	if(error)
+	{
+		SPDLOG_DEBUG(m_logger, "std::filesystem::is_directory failed: {}", error.message());
+		m_logger->warn("Check if path is a directory failed for: {}", message.path);
 	}
 
 	m_logger->warn("Open request on invalid file/folder {}", message.path);
@@ -158,7 +183,6 @@ void Logic::handleMessage([[maybe_unused]] Msg::In::InnerTaskEnded& message)
 Logic::Logic()
   : m_com(), m_end(false), m_music(), m_pending_futures(), m_logger(spdlog::get(LOGIC_LOGGER_NAME))
 {
-
 	init_SFML();
 }
 
@@ -196,7 +220,16 @@ void Logic::run()
 
 void Logic::loadFile(std::filesystem::path path)
 {
-	if(m_music.openFromFile(path.generic_string()))
+	std::string path_str;
+	if(!path_to_generic_utf8_string(path, path_str))
+	{
+		m_logger->warn("Tried to load file with invalid utf8 path: {}",
+		               invalid_utf8_path_representation(path));
+		sendMessage<Msg::Out::MusicInfo>(false, 0);
+		return;
+	}
+
+	if(m_music.openFromFile(path_str))
 	{
 		m_music.play();
 		m_logger->info("Loaded {}", path);
@@ -212,37 +245,85 @@ void Logic::loadFile(std::filesystem::path path)
 
 void Logic::sendFolderContent(std::filesystem::path path)
 {
-	std::vector<PathInfo> path_infos;
 	std::error_code error;
-	for(const std::filesystem::directory_entry& entry:
-	    std::filesystem::directory_iterator(path, error))
+	path = std::filesystem::canonical(path, error);
+	if(error)
+	{
+		SPDLOG_DEBUG(m_logger, "std::filesystem::canonical failed: {}", error.message());
+		m_logger->warn("Failed to get canonical path of folder {}", path);
+		return;
+	}
+
+	std::filesystem::directory_iterator directory_iterator(path, error);
+	if(error)
+	{
+		SPDLOG_DEBUG(m_logger, "Directory iterator creation failed: {}", error.message());
+		m_logger->warn("Failed to get content of folder {}", path);
+		return;
+	}
+
+	// Generate infos
+	std::vector<PathInfo> path_infos;
+	for(const std::filesystem::directory_entry& entry: directory_iterator)
 	{
 		PathInfo infos;
 		infos.path = entry.path();
-		if(entry.is_directory(error))
+
+		std::error_code directory_error;
+		std::error_code file_error;
+		if(entry.is_directory(directory_error))
 		{
 			infos.is_folder = true;
+			std::filesystem::path folder_name;
 			if(infos.path.has_filename())
 			{
-				infos.file_name = infos.path.filename();
+				// path doesn't end by '/', filename() return the folder name
+				folder_name = infos.path.filename();
 			}
 			else
 			{
-				infos.file_name = infos.path.parent_path().filename();
+				// path end by '/', use parent_path to get folder name
+				folder_name = infos.path.parent_path().filename();
+			}
+			if(!path_to_generic_utf8_string(folder_name, infos.file_name))
+			{
+				m_logger->warn("Folder with invalid utf8 name ignored: {}",
+				               invalid_utf8_path_representation(folder_name));
+				continue;
 			}
 		}
-		else if(entry.is_regular_file(error))
+		else if(entry.is_regular_file(file_error))
 		{
-			infos.file_name = infos.path.filename();
+			std::filesystem::path file_name = infos.path.filename();
+			if(!path_to_generic_utf8_string(file_name, infos.file_name))
+			{
+				m_logger->warn("File with invalid utf8 name ignored: {}",
+				               invalid_utf8_path_representation(file_name));
+				continue;
+			}
 			infos.file_size = entry.file_size(error);
 			//TODO:has_supported_audio_extension
 		}
 		else
 		{
+			if(directory_error)
+			{
+				SPDLOG_DEBUG(
+				  m_logger, "is_directory failed on entry {}: {}", entry.path(), error.message());
+			}
+			if(file_error)
+			{
+				SPDLOG_DEBUG(m_logger,
+				             "is_regular_file failed on entry {}: {}",
+				             entry.path(),
+				             error.message());
+			}
 			continue;
 		}
 		path_infos.push_back(std::move(infos));
 	}
+
+	// Sort infos
 	std::sort(
 	  path_infos.begin(), path_infos.end(), [](const PathInfo& lhs, const PathInfo& rhs) noexcept {
 		  return std::make_tuple(!lhs.is_folder, lhs.file_name)
