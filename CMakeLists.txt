@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.10) # For CXX_STANDARD 17 property on Visual Studio
 
-enable_language(CXX)
+# Project declaration
+project(
+	MagicPlayer
+	VERSION 1.0.1
+	DESCRIPTION "The magic music player"
+	HOMEPAGE_URL "https://github.com/pinam45/MagicPlayer"
+	LANGUAGES CXX
+)
+
+#enable_language(CXX)
 #enable_testing()
 
 # By default build in Release mode
@@ -26,18 +35,6 @@ include(cmake/spdlog.cmake)
 include(cmake/IconFontCppHeaders.cmake)
 include(cmake/utfcpp.cmake)
 
-# Project version
-set(VERSION_MAJOR 0)
-set(VERSION_MINOR 1)
-set(VERSION_PATCH 0)
-
-# Project declaration
-project(
-  MagicPlayer
-  VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}
-  LANGUAGES CXX
-)
-
 # Add postfix in debug mode
 #set(CMAKE_DEBUG_POSTFIX -d)
 
@@ -51,7 +48,7 @@ get_files(
 make_target(
   MagicPlayer "MagicPlayer" ${files}
   INCLUDES
-    "include/"
+    "${CMAKE_SOURCE_DIR}/include"
   EXT_INCLUDES
     "${OPENGL_INCLUDE_DIR}"
     "${SFML_INCLUDE_DIR}"
