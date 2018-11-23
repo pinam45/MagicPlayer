@@ -662,6 +662,15 @@ function(setup_gcc target)
 	has_item(option_no_warnings "no_warnings" ${options})
 	has_item(option_low_warnings "low_warnings" ${options})
 
+	# setup ccache
+	find_program(CCACHE_PROGRAM ccache)
+	if(NOT ${CCACHE_PROGRAM} STREQUAL CCACHE_PROGRAM-NOTFOUND)
+		message(STATUS "ccache found: ${CCACHE_PROGRAM}")
+		set_target_properties(${target} PROPERTIES C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+		set_target_properties(${target} PROPERTIES CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+		message(STATUS "Enabled ccache on target ${target}")
+	endif()
+
 	# generates complete debugging information
 	target_add_compiler_flag(${target} "-g3" DEBUG RELWITHDEBINFO)
 
@@ -832,6 +841,15 @@ function(setup_clang target)
 	has_item(option_static_runtime "static_runtime" ${options})
 	has_item(option_no_warnings "no_warnings" ${options})
 	has_item(option_low_warnings "low_warnings" ${options})
+
+	# setup ccache
+	find_program(CCACHE_PROGRAM ccache)
+	if(NOT ${CCACHE_PROGRAM} STREQUAL CCACHE_PROGRAM-NOTFOUND)
+		message(STATUS "ccache found: ${CCACHE_PROGRAM}")
+		set_target_properties(${target} PROPERTIES C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+		set_target_properties(${target} PROPERTIES CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+		message(STATUS "Enabled ccache on target ${target}")
+	endif()
 
 	# generates complete debugging information
 	target_add_compiler_flag(${target} "-g3" DEBUG RELWITHDEBINFO)
