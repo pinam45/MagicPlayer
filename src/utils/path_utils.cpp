@@ -2,7 +2,7 @@
 
 #include <utf8.h>
 
-bool utf8_string_to_path(const std::string& str, std::filesystem::path& path)
+bool utf8_string_to_path(const std::string& str, std::filesystem::path& path) noexcept
 {
 	static_assert(std::is_same<std::filesystem::path::value_type, wchar_t>::value
 	                || std::is_same<std::filesystem::path::value_type, char>::value,
@@ -35,7 +35,7 @@ bool utf8_string_to_path(const std::string& str, std::filesystem::path& path)
 	}
 }
 
-bool path_to_generic_utf8_string(const std::filesystem::path& path, std::string& str)
+bool path_to_generic_utf8_string(const std::filesystem::path& path, std::string& str) noexcept
 {
 	static_assert(std::is_same<std::filesystem::path::value_type, wchar_t>::value
 	                || std::is_same<std::filesystem::path::value_type, char>::value,
@@ -68,7 +68,7 @@ bool path_to_generic_utf8_string(const std::filesystem::path& path, std::string&
 	return true;
 }
 
-std::string invalid_utf8_path_representation(const std::filesystem::path& path)
+std::string invalid_utf8_path_representation(const std::filesystem::path& path) noexcept
 {
 	static_assert(std::is_same<std::filesystem::path::value_type, wchar_t>::value
 	                || std::is_same<std::filesystem::path::value_type, char>::value,
@@ -79,7 +79,7 @@ std::string invalid_utf8_path_representation(const std::filesystem::path& path)
 	return str;
 }
 
-std::filesystem::path utf8_string_to_path(const std::string& str)
+std::filesystem::path utf8_string_to_path(const std::string& str) noexcept
 {
 	static_assert(std::is_same<std::filesystem::path::value_type, wchar_t>::value
 	                || std::is_same<std::filesystem::path::value_type, char>::value,
@@ -104,7 +104,7 @@ std::filesystem::path utf8_string_to_path(const std::string& str)
 	}
 }
 
-std::string path_to_generic_utf8_string(std::filesystem::path path)
+std::string path_to_generic_utf8_string(std::filesystem::path path) noexcept
 {
 	static_assert(std::is_same<std::filesystem::path::value_type, wchar_t>::value
 	                || std::is_same<std::filesystem::path::value_type, char>::value,
