@@ -8,6 +8,6 @@
 #ifndef MAGICPLAYER_IMGUI_HELPERS_HPP
 #define MAGICPLAYER_IMGUI_HELPERS_HPP
 
-float compute_text_width(const char* text);
+[[gnu::nonnull(1)]] float compute_text_width(const char* text);
 
 #endif //MAGICPLAYER_IMGUI_HELPERS_HPP
