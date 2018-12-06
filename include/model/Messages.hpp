@@ -110,9 +110,11 @@ namespace Msg
 			std::filesystem::path path;
 			std::vector<PathInfo> content;
 
-			FolderContent(std::filesystem::path path, const std::vector<PathInfo>& content = {});
+			explicit FolderContent(std::filesystem::path path,
+			                       const std::vector<PathInfo>& content = {});
 			FolderContent(std::filesystem::path path, std::vector<PathInfo>&& content);
 		};
+		std::ostream& operator<<(std::ostream& os, const FolderContent& m);
 	} // namespace Out
 
 	struct Com
@@ -197,6 +199,20 @@ inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::Musi
 	return os << "MusicInfo{"
 	          << "valid: " << m.valid << ","
 	          << "durationSeconds:" << m.durationSeconds << "}";
+}
+
+inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::FolderContent& m)
+{
+	os << "FolderContent{"
+	   << "path: " << m.path << ","
+	   << "content: [";
+	for(const auto& info: m.content)
+	{
+		os << info << ",";
+	}
+	os << "]}";
+
+	return os;
 }
 
 #endif //MAGICPLAYER_MESSAGES_HPP

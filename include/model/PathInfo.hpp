@@ -30,4 +30,6 @@ struct PathInfo final
 	~PathInfo() = default;
 };
 
+std::ostream& operator<<(std::ostream& os, const PathInfo& p);
+
 #endif //MAGICPLAYER_PATHINFO_HPP
