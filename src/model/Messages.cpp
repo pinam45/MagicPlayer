@@ -7,17 +7,6 @@
 //
 #include "model/Messages.hpp"
 
-Msg::details::ostream_config_guard::ostream_config_guard(std::ostream& os_)
-  : os(os_), flags(os_.flags())
-{
-	os << std::boolalpha << std::fixed << std::setprecision(2);
-}
-
-Msg::details::ostream_config_guard::~ostream_config_guard()
-{
-	os.flags(flags);
-}
-
 Msg::In::Open::Open(std::filesystem::path path_): path(std::move(path_))
 {
 }

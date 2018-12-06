@@ -9,6 +9,7 @@
 #define MAGICPLAYER_MESSAGES_HPP
 
 #include "utils/shared_queue.hpp"
+#include "utils/ostream_config_guard.hpp"
 #include "model/PathInfo.hpp"
 
 #include <spdlog/spdlog.h>
@@ -24,18 +25,6 @@
 
 namespace Msg
 {
-	namespace details
-	{
-		struct ostream_config_guard
-		{
-			std::ostream& os;
-			std::ios_base::fmtflags flags;
-
-			explicit ostream_config_guard(std::ostream& os);
-			~ostream_config_guard();
-		};
-	} // namespace details
-
 	namespace In
 	{
 
@@ -172,7 +161,7 @@ inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Contro
 
 inline std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Volume& m)
 {
-	Msg::details::ostream_config_guard guard(os);
+	ostream_config_guard guard(os, std::boolalpha, std::fixed, std::setprecision(2));
 	return os << "Volume{"
 	          << "muted: " << m.muted << ","
 	          << "volume:" << m.volume << "}";
@@ -204,7 +193,7 @@ inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::Musi
 
 inline std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::MusicInfo& m)
 {
-	Msg::details::ostream_config_guard guard(os);
+	ostream_config_guard guard(os, std::boolalpha, std::fixed, std::setprecision(2));
 	return os << "MusicInfo{"
 	          << "valid: " << m.valid << ","
 	          << "durationSeconds:" << m.durationSeconds << "}";
