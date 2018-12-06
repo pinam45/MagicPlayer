@@ -279,7 +279,8 @@ ImFont* GUI::loadFonts(float pixel_size)
 	ImGuiIO& io = ImGui::GetIO();
 
 	static constexpr ImWchar font_ranges[] = {0x0001, 0xFFFF, 0};
-	ImFont* default_font = io.Fonts->AddFontFromFileTTF(DEFAULT_FONT_PATH, pixel_size, nullptr, font_ranges);
+	ImFont* default_font =
+	  io.Fonts->AddFontFromFileTTF(DEFAULT_FONT_PATH, pixel_size, nullptr, font_ranges);
 	if(default_font)
 	{
 		SPDLOG_DEBUG(m_logger, "Loaded font {} {:.2f}px", DEFAULT_FONT_PATH, pixel_size);

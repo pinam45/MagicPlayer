@@ -48,7 +48,7 @@ void FileExplorer::init()
 
 void FileExplorer::show()
 {
-	ImGui::Begin(m_name.c_str());
+	ImGui::Begin(m_name.c_str()); // Explorer
 
 	// Display navigation buttons list
 	if(m_text_field_focus_state == 0)

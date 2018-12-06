@@ -13,9 +13,12 @@
 
 #include <iostream>
 
-constexpr const char* LOG_FILENAME = "log.txt";
-constexpr std::size_t LOG_MAX_SIZE = 1024 * 1024 * 5;
-constexpr std::size_t LOG_MAX_FILES = 3;
+namespace
+{
+	constexpr const char* LOG_FILENAME = "log.txt";
+	constexpr std::size_t LOG_MAX_SIZE = 1024 * 1024 * 5;
+	constexpr std::size_t LOG_MAX_FILES = 3;
+} // namespace
 
 bool init_logger()
 {

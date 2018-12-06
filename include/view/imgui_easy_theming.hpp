@@ -62,7 +62,7 @@ namespace ImGui::ETheming
 
 	[[gnu::nonnull(1)]] void showPredefinedThemeSelector(ColorTheme* p_colorTheme);
 
-	[[gnu::nonnull(1,2)]] void showThemeConfigWindow(ColorTheme* p_colorTheme, bool* p_open);
+	[[gnu::nonnull(1, 2)]] void showThemeConfigWindow(ColorTheme* p_colorTheme, bool* p_open);
 } // namespace ImGui::ETheming
 
 namespace ImGui::ETheming

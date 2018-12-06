@@ -13,11 +13,13 @@
 
 // Convert an utf8 string to a path.
 // return false on error, true on success
-[[nodiscard]] bool utf8_string_to_path(const std::string& str, std::filesystem::path& path) noexcept;
+[[nodiscard]] bool utf8_string_to_path(const std::string& str,
+                                       std::filesystem::path& path) noexcept;
 
 // Convert a path to a generic utf8 string.
 // return false on error, true on success
-[[nodiscard]] bool path_to_generic_utf8_string(const std::filesystem::path& path, std::string& str) noexcept;
+[[nodiscard]] bool path_to_generic_utf8_string(const std::filesystem::path& path,
+                                               std::string& str) noexcept;
 
 // Generate a debug representation of an invalid utf8 path.
 // use to log when path_to_generic_utf8_string() fail (return false) to get a string with
