@@ -18,6 +18,11 @@
 
 namespace
 {
+	constexpr std::array<std::string_view, 4> SUPPORTED_AUDIO_EXTENSIONS = {".vaw",
+	                                                                        ".ogg",
+	                                                                        ".flac",
+	                                                                        ".mp3"};
+
 	std::once_flag SFML_inited;
 	void init_SFML()
 	{
@@ -78,7 +83,7 @@ void Logic::handleMessage(Msg::In::Open& message)
 		auto process = [this](const std::filesystem::path path) noexcept
 		{
 			sendFolderContent(path);
-			m_com.in.push_back(Msg::In::InnerTaskEnded{});
+			m_com.in.emplace_back(std::in_place_type_t<Msg::In::InnerTaskEnded>{});
 		};
 		m_pending_futures.push_back(std::async(std::launch::async, process, message.path));
 		return;
@@ -302,7 +307,10 @@ void Logic::sendFolderContent(std::filesystem::path path)
 				continue;
 			}
 			infos.file_size = entry.file_size(error);
-			//TODO:has_supported_audio_extension
+			infos.has_supported_audio_extension = std::find(std::cbegin(SUPPORTED_AUDIO_EXTENSIONS),
+			                                                std::cend(SUPPORTED_AUDIO_EXTENSIONS),
+			                                                entry.path().extension().c_str())
+			                                      != std::cend(SUPPORTED_AUDIO_EXTENSIONS);
 		}
 		else
 		{

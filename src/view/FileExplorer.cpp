@@ -251,13 +251,22 @@ void FileExplorer::processMessage(Msg::Out::FolderContent& message)
 	m_formatted_content.clear();
 	for(const PathInfo& info: m_content)
 	{
+		std::string icon;
 		if(info.is_folder)
 		{
-			m_formatted_content.push_back(std::string(ICON_FA_FOLDER) + " " + info.file_name);
+			icon = ICON_FA_FOLDER;
 		}
 		else
 		{
-			m_formatted_content.push_back(std::string(ICON_FA_FILE) + " " + info.file_name);
+			if(info.has_supported_audio_extension)
+			{
+				icon = ICON_FA_FILE_AUDIO;
+			}
+			else
+			{
+				icon = ICON_FA_FILE;
+			}
 		}
+		m_formatted_content.push_back(icon + " " + info.file_name);
 	}
 }
