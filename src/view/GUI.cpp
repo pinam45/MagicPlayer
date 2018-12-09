@@ -37,6 +37,7 @@ namespace
 	constexpr const char* MAIN_DOCKSPACE_NAME = "Main dockspace";
 	constexpr const char* INNER_WINDOW_PLAYER_NAME = "Player";
 	constexpr const char* INNER_WINDOW_EXPLORER_NAME = "Explorer";
+	constexpr const char* INNER_WINDOW_LOG_VIEWER_NAME = "Log viewer";
 } // namespace
 
 template<typename Message, typename... Args>
@@ -74,11 +75,13 @@ GUI::GUI(Msg::Com& com_)
   : m_musicInfos()
   , m_com(com_)
   , m_showThemeConfigWindow(false)
+  , m_showLogViewerWindow(false)
   , m_volume(MUSIC_INITIAL_VOLUME)
   , m_style(ImGui::ETheming::ColorTheme::ArcDark)
   , m_normal_font(nullptr)
   , m_large_font(nullptr)
   , m_file_explorer(INNER_WINDOW_EXPLORER_NAME, m_com.in)
+  , m_log_viewer(INNER_WINDOW_LOG_VIEWER_NAME)
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
 {
 }
@@ -149,6 +152,18 @@ void GUI::show()
 	if(m_showThemeConfigWindow)
 	{
 		ImGui::ETheming::showThemeConfigWindow(&m_style, &m_showThemeConfigWindow);
+		if(!m_showThemeConfigWindow)
+		{
+			SPDLOG_DEBUG(m_logger, "Close theme configuration window");
+		}
+	}
+	if(m_showLogViewerWindow)
+	{
+		m_log_viewer.show(m_showLogViewerWindow);
+		if(!m_showLogViewerWindow)
+		{
+			SPDLOG_DEBUG(m_logger, "Close logs console");
+		}
 	}
 }
 
@@ -173,11 +188,29 @@ void GUI::showMainDockspace()
 	// Show menu bar
 	if(ImGui::BeginMenuBar())
 	{
-		if(ImGui::BeginMenu("Edit"))
+		if(ImGui::BeginMenu("View"))
 		{
-			if(ImGui::MenuItem("Theme", nullptr, &m_showThemeConfigWindow))
+			if(ImGui::MenuItem("Theme configuration", nullptr, &m_showThemeConfigWindow))
 			{
-				SPDLOG_DEBUG(m_logger, "Show theme config window");
+				if(m_showThemeConfigWindow)
+				{
+					SPDLOG_DEBUG(m_logger, "Show theme configuration window");
+				}
+				else
+				{
+					SPDLOG_DEBUG(m_logger, "Hide theme configuration window");
+				}
+			}
+			if(ImGui::MenuItem("Logs console", nullptr, &m_showLogViewerWindow))
+			{
+				if(m_showLogViewerWindow)
+				{
+					SPDLOG_DEBUG(m_logger, "Show logs console");
+				}
+				else
+				{
+					SPDLOG_DEBUG(m_logger, "Hide logs console");
+				}
 			}
 			ImGui::EndMenu();
 		}
@@ -350,6 +383,15 @@ void GUI::loadInitialConfig()
 	m_musicInfos.duration = 0;
 
 	m_file_explorer.init();
+	m_log_viewer.init();
+	for(const char* logger_name: LOGGERS_NAMES)
+	{
+		auto logger = spdlog::get(logger_name);
+		if(logger)
+		{
+			m_log_viewer.watch_logger(logger);
+		}
+	}
 
 	sendMessage<Msg::In::Volume>(false, m_volume);
 	SPDLOG_DEBUG(m_logger, "Sent initial config messages");

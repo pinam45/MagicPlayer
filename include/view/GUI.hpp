@@ -11,6 +11,7 @@
 #include "model/Messages.hpp"
 #include "view/imgui_easy_theming.hpp"
 #include "view/FileExplorer.hpp"
+#include "view/LogViewer.hpp"
 
 #include <imgui.h>
 #include <spdlog/logger.h>
@@ -58,12 +59,14 @@ private:
 
 	Msg::Com& m_com;
 	bool m_showThemeConfigWindow;
+	bool m_showLogViewerWindow;
 	float m_volume;
 	ImGui::ETheming::ColorTheme m_style;
 	ImFont* m_normal_font;
 	ImFont* m_large_font;
 
 	FileExplorer m_file_explorer;
+	LogViewer m_log_viewer;
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };
