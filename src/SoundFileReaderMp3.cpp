@@ -34,13 +34,13 @@
 
 namespace
 {
-	ssize_t mpg123_handle_read(void* vstream, void* buf, size_t nbyte)
+	ssize_t mpg123_handle_read(void* vstream, void* buf, size_t nbyte) noexcept
 	{
 		sf::InputStream* stream = reinterpret_cast<sf::InputStream*>(vstream);
 		return stream->read(buf, static_cast<sf::Int64>(nbyte));
 	}
 
-	off_t mpg123_handle_lseek(void* vstream, off_t offset, int whence)
+	off_t mpg123_handle_lseek(void* vstream, off_t offset, int whence) noexcept
 	{
 		sf::InputStream* stream = reinterpret_cast<sf::InputStream*>(vstream);
 		switch(whence)
@@ -48,23 +48,23 @@ namespace
 			case SEEK_SET:
 				break;
 			case SEEK_CUR:
-				offset += stream->tell();
+				offset += static_cast<off_t>(stream->tell());
 				break;
 			case SEEK_END:
-				offset += stream->getSize();
+				offset += static_cast<off_t>(stream->getSize());
 				break;
 			default:
 				return -1;
 		}
-		return stream->seek(offset);
+		return static_cast<off_t>(stream->seek(offset));
 	}
 
-	void mpg123_handle_cleanup(void* vstream)
+	void mpg123_handle_cleanup(void* vstream) noexcept
 	{
 		UNUSED_PARAMETER(vstream);
 	}
 
-	void set_mpg123_quiet(mpg123_handle* handle)
+	void set_mpg123_quiet(mpg123_handle* handle) noexcept
 	{
 		long mpg123_flags = 0;
 		double dummy = 0;
