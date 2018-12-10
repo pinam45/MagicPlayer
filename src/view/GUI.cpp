@@ -23,8 +23,8 @@
 namespace
 {
 	constexpr const char* WINDOW_NAME = "MagicPlayer";
-	constexpr unsigned int WINDOW_INITIAL_WIDTH = 600;
-	constexpr unsigned int WINDOW_INITIAL_HEIGHT = 400;
+	constexpr unsigned int WINDOW_INITIAL_WIDTH = 900;
+	constexpr unsigned int WINDOW_INITIAL_HEIGHT = 600;
 	constexpr float MUSIC_INITIAL_VOLUME = 20.0f;
 	constexpr float MUSIC_OFFSET_REFRESH_SECONDS = 0.1f;
 	constexpr unsigned int FRAME_RATE_LIMIT = 60;
@@ -227,7 +227,7 @@ void GUI::showMainDockspace()
 
 		ImGuiID dock_main_id = dockspace_id;
 		ImGuiID dock_id_bottom =
-		  ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.10f, nullptr, &dock_main_id);
+		  ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.12f, nullptr, &dock_main_id);
 
 		ImGui::DockBuilderDockWindow(INNER_WINDOW_EXPLORER_NAME, dock_main_id);
 		ImGui::DockBuilderDockWindow(INNER_WINDOW_PLAYER_NAME, dock_id_bottom);
