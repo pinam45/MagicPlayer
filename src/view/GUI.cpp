@@ -7,6 +7,7 @@
 //
 #include "view/GUI.hpp"
 #include "view/imgui_easy_theming.hpp"
+#include "view/imgui_custom_widgets.hpp"
 #include "utils/log.hpp"
 
 #include <IconsFontAwesome5.h>
@@ -226,7 +227,7 @@ void GUI::showMainDockspace()
 
 		ImGuiID dock_main_id = dockspace_id;
 		ImGuiID dock_id_bottom =
-		  ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.30f, nullptr, &dock_main_id);
+		  ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.10f, nullptr, &dock_main_id);
 
 		ImGui::DockBuilderDockWindow(INNER_WINDOW_EXPLORER_NAME, dock_main_id);
 		ImGui::DockBuilderDockWindow(INNER_WINDOW_PLAYER_NAME, dock_id_bottom);
@@ -242,36 +243,12 @@ void GUI::showMainDockspace()
 void GUI::showPlayer()
 {
 	ImGui::Begin(INNER_WINDOW_PLAYER_NAME);
+	ImGui::PushFont(m_large_font);
 
 	if(m_musicInfos.valid)
 	{
-		// Show playing bar
-		constexpr float trac_min = 0.0f;
-		constexpr float trac_max = 100.0f;
-		float trac_pos = m_musicInfos.offset / m_musicInfos.duration * trac_max;
-		ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize() * 8);
-		if(ImGui::SliderScalar(
-		     "##time", ImGuiDataType_Float, &trac_pos, &trac_min, &trac_max, "%.0f%%"))
-		{
-			m_logger->info("Request to set music offset to {:.2f} seconds",
-			               trac_pos / trac_max * m_musicInfos.duration);
-			sendMessage<Msg::In::MusicOffset>(trac_pos / trac_max * m_musicInfos.duration);
-		}
-		ImGui::PopItemWidth();
-
-		// Show playing time
-		const int playingOffset_i = static_cast<int>(m_musicInfos.offset);
-		const int duration_i = static_cast<int>(m_musicInfos.duration);
-		ImGui::SameLine();
-		ImGui::LabelText("##time_post",
-		                 "%02d:%02d / %02d:%02d",
-		                 playingOffset_i / 60,
-		                 playingOffset_i % 60,
-		                 duration_i / 60,
-		                 duration_i % 60);
-
-		// Show control buttons
-		ImGui::PushFont(m_large_font);
+		// Control buttons
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4());
 		if(ImGui::Button(ICON_FA_PLAY))
 		{
 			m_logger->info("Request to play/resume music");
@@ -289,21 +266,51 @@ void GUI::showPlayer()
 			m_logger->info("Request to stop music");
 			sendMessage<Msg::In::Control>(Msg::In::Control::Action::STOP);
 		}
-		ImGui::PopFont();
+		ImGui::PopStyleColor();
 
-		// Show volume separator
-		ImGui::Separator();
+		// Song playing offset
+		const int playingOffset_i = static_cast<int>(m_musicInfos.offset);
+		ImGui::SameLine();
+		ImGui::PushItemWidth(ImGui::GetFontSize() * 2.7f);
+		ImGui::LabelText("##time_pre", "%02d:%02d", playingOffset_i / 60, playingOffset_i % 60);
+		ImGui::PopItemWidth();
+
+		// Song playing bar
+		float trac_pos = m_musicInfos.offset;
+		ImVec2 player_bar_size(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize() * 20.0f,
+		                       0.0f);
+		ImGui::SameLine();
+		if(ImGuiCW::PlayerBar(
+		     "player_bar", &trac_pos, 0.0f, m_musicInfos.duration, player_bar_size))
+		{
+			m_logger->info("Request to set music offset to {:.2f} seconds", trac_pos);
+			sendMessage<Msg::In::MusicOffset>(trac_pos);
+		}
+
+		// Song duration
+		const int duration_i = static_cast<int>(m_musicInfos.duration);
+		ImGui::SameLine();
+		ImGui::PushItemWidth(ImGui::GetFontSize() * 2.7f);
+		ImGui::LabelText("##time_post", "%02d:%02d", duration_i / 60, duration_i % 60);
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
 	}
 
-	// Show volume
-	ImGui::PushItemWidth(ImGui::GetFontSize() * -4);
-	if(ImGui::SliderFloat("volume", &m_volume, 0.f, 100.f, "%.1f"))
+	// Volume
+	ImGui::PushItemWidth(ImGui::GetFontSize() * 1.3f);
+	ImGui::LabelText("##volume_icon", ICON_FA_VOLUME_UP);
+	ImGui::PopItemWidth();
+	ImGui::SameLine();
+	ImGui::PushItemWidth(-1);
+	if(ImGui::SliderFloat("##volume", &m_volume, 0.f, 100.f, "%.0f%%"))
 	{
 		m_logger->info("Request to change volume to {:.2f}%", m_volume);
 		sendMessage<Msg::In::Volume>(false, m_volume);
 	}
 	ImGui::PopItemWidth();
 
+	ImGui::PopFont();
 	ImGui::End();
 }
 
