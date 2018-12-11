@@ -307,10 +307,11 @@ void Logic::sendFolderContent(std::filesystem::path path)
 				continue;
 			}
 			infos.file_size = entry.file_size(error);
-			infos.has_supported_audio_extension = std::find(std::cbegin(SUPPORTED_AUDIO_EXTENSIONS),
-			                                                std::cend(SUPPORTED_AUDIO_EXTENSIONS),
-			                                                entry.path().extension().c_str())
-			                                      != std::cend(SUPPORTED_AUDIO_EXTENSIONS);
+			infos.has_supported_audio_extension =
+			  std::find(std::cbegin(SUPPORTED_AUDIO_EXTENSIONS),
+			            std::cend(SUPPORTED_AUDIO_EXTENSIONS),
+			            path_to_generic_utf8_string(entry.path().extension()))
+			  != std::cend(SUPPORTED_AUDIO_EXTENSIONS);
 		}
 		else
 		{
