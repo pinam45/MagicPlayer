@@ -8,7 +8,8 @@ set(SFML_MINIMUM_SYSTEM_VERSION 2.5)
 
 set(SFML_USE_EMBEDED ${COMPILE_SFML_WITH_PROJECT})
 if(NOT SFML_USE_EMBEDED)
-	if(CONFIG_OS_WINDOWS)
+	cmutils_define_os_variables()
+	if(OS_WINDOWS)
 		set(SFML_USE_EMBEDED ON)
 		message(STATUS "OS is Windows, compile SFML with project")
 	else()
@@ -36,7 +37,7 @@ if(SFML_USE_EMBEDED)
 	get_filename_component(SFML_DIR ${CMAKE_SOURCE_DIR}/deps/SFML ABSOLUTE)
 
 	# Submodule check
-	directory_is_empty(is_empty "${SFML_DIR}")
+	cmutils_directory_is_empty(is_empty "${SFML_DIR}")
 	if(is_empty)
 		message(FATAL_ERROR "SFML dependency is missing, maybe you didn't pull the git submodules")
 	endif()
@@ -52,19 +53,21 @@ if(SFML_USE_EMBEDED)
 	endforeach()
 
 	# Configure OpenAL
-	if(CONFIG_OS_WINDOWS)
+	cmutils_define_os_variables()
+	if(OS_WINDOWS)
+		cmutils_define_arch_variables()
 		set(ARCH_FOLDER "x86")
-		if(CONFIG_ARCH_64BITS)
+		if(ARCH_64BITS)
 			set(ARCH_FOLDER "x64")
 		endif()
-		configure_file(${SFML_DIR}/extlibs/bin/${ARCH_FOLDER}/openal32.dll ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COPYONLY)
+		configure_file(${SFML_DIR}/extlibs/bin/${ARCH_FOLDER}/openal32.dll "${CMAKE_BINARY_DIR}/build/bin" COPYONLY)
 	endif()
 
 	# Setup targets output, put exe and required SFML dll in the same folder
-	target_set_output_directory(sfml-system "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-	target_set_output_directory(sfml-window "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-	target_set_output_directory(sfml-graphics "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-	target_set_output_directory(sfml-audio "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+	cmutils_target_set_output_directory(sfml-system "${CMAKE_BINARY_DIR}/build/bin")
+	cmutils_target_set_output_directory(sfml-window "${CMAKE_BINARY_DIR}/build/bin")
+	cmutils_target_set_output_directory(sfml-graphics "${CMAKE_BINARY_DIR}/build/bin")
+	cmutils_target_set_output_directory(sfml-audio "${CMAKE_BINARY_DIR}/build/bin")
 
 	# Variables
 	get_filename_component(SFML_INCLUDE_DIR  ${SFML_DIR}/include  ABSOLUTE)
