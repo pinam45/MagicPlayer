@@ -6,7 +6,7 @@ project(
 	VERSION 1.0.1
 	DESCRIPTION "The magic music player"
 	HOMEPAGE_URL "https://github.com/pinam45/MagicPlayer"
-	LANGUAGES CXX
+	LANGUAGES CXX C
 )
 
 # By default build in Release mode
