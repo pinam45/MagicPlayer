@@ -13,3 +13,6 @@
 [submodule "deps/utfcpp"]
 	path = deps/utfcpp
 	url = https://github.com/nemtrif/utfcpp
+[submodule "deps/taglib"]
+	path = deps/taglib
+	url = https://github.com/taglib/taglib
