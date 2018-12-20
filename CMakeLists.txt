@@ -30,6 +30,7 @@ include(cmake/libmpg123.cmake)
 include(cmake/spdlog.cmake)
 include(cmake/IconFontCppHeaders.cmake)
 include(cmake/utfcpp.cmake)
+include(cmake/taglib.cmake)
 
 # Declare MagicPlayer
 add_executable(MagicPlayer)
@@ -58,6 +59,7 @@ target_include_directories(
 	"${SPDLOG_INCLUDE_DIR}"
 	"${ICON_FONT_CPP_HEADERS_INCLUDE_DIR}"
 	"${UTFCPP_INCLUDE_DIR}"
+	"${TAGLIB_INCLUDE_DIR}"
 )
 
 # Link dependencies
@@ -70,6 +72,7 @@ target_link_libraries(
   ${SPDLOG_LIBRARY}
   ${ICON_FONT_CPP_HEADERS_LIBRARY}
   ${UTFCPP_LIBRARY}
+  ${TAGLIB_LIBRARY}
 )
 
 # Link threads library
