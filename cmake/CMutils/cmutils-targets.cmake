@@ -314,9 +314,9 @@ endfunction()
 macro(cmutils_target_set_classic_output_directories target)
 	cmutils_target_set_output_directory(
 		${target}
-		RUNTIME "${CMAKE_BINARY_DIR}/build/bin"
-		LIBRARY "${CMAKE_BINARY_DIR}/build/lib"
-		ARCHIVE "${CMAKE_BINARY_DIR}/build/lib"
+		RUNTIME "${CMAKE_CURRENT_BINARY_DIR}/build/bin"
+		LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/build/lib"
+		ARCHIVE "${CMAKE_CURRENT_BINARY_DIR}/build/lib"
 	)
 endmacro()
 
