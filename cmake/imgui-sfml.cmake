@@ -1,7 +1,7 @@
 message(STATUS "Configuring imgui-sfml")
 
-get_filename_component(IMGUI_DIR ${CMAKE_SOURCE_DIR}/deps/imgui ABSOLUTE)
-get_filename_component(IMGUI_SFML_DIR ${CMAKE_SOURCE_DIR}/deps/imgui-sfml ABSOLUTE)
+get_filename_component(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/imgui ABSOLUTE)
+get_filename_component(IMGUI_SFML_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/imgui-sfml ABSOLUTE)
 get_filename_component(IMGUI_SFML_TARGET_DIR ${CMAKE_CURRENT_BINARY_DIR}/imgui-sfml ABSOLUTE)
 
 # Submodules check

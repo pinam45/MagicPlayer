@@ -1,12 +1,12 @@
 message(STATUS "Configuring SFML")
 
 # Cache config
-set(COMPILE_SFML_WITH_PROJECT OFF CACHE BOOL "Compile SFML with project, don't search system installation")
+set(MAGICPLAYER_COMPILE_SFML_WITH_PROJECT OFF CACHE BOOL "Compile SFML with project, don't search system installation")
 
 # Config
 set(SFML_MINIMUM_SYSTEM_VERSION 2.5)
 
-set(SFML_USE_EMBEDED ${COMPILE_SFML_WITH_PROJECT})
+set(SFML_USE_EMBEDED ${MAGICPLAYER_COMPILE_SFML_WITH_PROJECT})
 if(NOT SFML_USE_EMBEDED)
 	cmutils_define_os_variables()
 	if(OS_WINDOWS)
@@ -22,7 +22,7 @@ if(NOT SFML_USE_EMBEDED)
 			# Message
 			message(WARNING "If the program crashes when using the clipboard,"
 			  " it is an SFML bug not yet fixed on your system but already fixed on Github (see https://github.com/SFML/SFML/pull/1437),"
-			  " use CMake with -DCOMPILE_SFML_WITH_PROJECT=ON to compile and use the fixed version with the project")
+			  " use CMake with -DMAGICPLAYER_COMPILE_SFML_WITH_PROJECT=ON to compile and use the fixed version with the project")
 			message("> include: ${SFML_INCLUDE_DIR}")
 			message("> library: ${SFML_LIBRARY}")
 			message(STATUS "Configuring SFML - Done")
@@ -34,7 +34,7 @@ if(NOT SFML_USE_EMBEDED)
 endif()
 
 if(SFML_USE_EMBEDED)
-	get_filename_component(SFML_DIR ${CMAKE_SOURCE_DIR}/deps/SFML ABSOLUTE)
+	get_filename_component(SFML_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/SFML ABSOLUTE)
 
 	# Submodule check
 	cmutils_directory_is_empty(is_empty "${SFML_DIR}")
@@ -60,14 +60,14 @@ if(SFML_USE_EMBEDED)
 		if(ARCH_64BITS)
 			set(ARCH_FOLDER "x64")
 		endif()
-		configure_file(${SFML_DIR}/extlibs/bin/${ARCH_FOLDER}/openal32.dll "${CMAKE_BINARY_DIR}/build/bin" COPYONLY)
+		configure_file(${SFML_DIR}/extlibs/bin/${ARCH_FOLDER}/openal32.dll "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" COPYONLY)
 	endif()
 
 	# Setup targets output, put exe and required SFML dll in the same folder
-	cmutils_target_set_output_directory(sfml-system "${CMAKE_BINARY_DIR}/build/bin")
-	cmutils_target_set_output_directory(sfml-window "${CMAKE_BINARY_DIR}/build/bin")
-	cmutils_target_set_output_directory(sfml-graphics "${CMAKE_BINARY_DIR}/build/bin")
-	cmutils_target_set_output_directory(sfml-audio "${CMAKE_BINARY_DIR}/build/bin")
+	cmutils_target_set_output_directory(sfml-system "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+	cmutils_target_set_output_directory(sfml-window "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+	cmutils_target_set_output_directory(sfml-graphics "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+	cmutils_target_set_output_directory(sfml-audio "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 
 	# Variables
 	get_filename_component(SFML_INCLUDE_DIR  ${SFML_DIR}/include  ABSOLUTE)

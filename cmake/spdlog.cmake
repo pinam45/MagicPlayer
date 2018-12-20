@@ -1,6 +1,6 @@
 message(STATUS "Configuring spdlog")
 
-get_filename_component(SPDLOG_DIR ${CMAKE_SOURCE_DIR}/deps/spdlog ABSOLUTE)
+get_filename_component(SPDLOG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/spdlog ABSOLUTE)
 
 # Submodule check
 cmutils_directory_is_empty(is_empty "${SPDLOG_DIR}")

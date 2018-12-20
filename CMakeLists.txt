@@ -11,7 +11,7 @@ project(
 
 # By default build in Release mode
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE "Release")
+	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type: Release, RelWithDebInfo or Debug" FORCE)
 endif()
 
 # CMake utilities

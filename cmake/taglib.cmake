@@ -1,6 +1,6 @@
 message(STATUS "Configuring taglib")
 
-get_filename_component(TAGLIB_DIR "${CMAKE_SOURCE_DIR}/deps/taglib" ABSOLUTE)
+get_filename_component(TAGLIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps/taglib" ABSOLUTE)
 get_filename_component(TAGLIB_SRC_DIR "${TAGLIB_DIR}/taglib" ABSOLUTE)
 get_filename_component(TAGLIB_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}/deps/taglib/config" ABSOLUTE)
 get_filename_component(TAGLIB_IMPORTED_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/deps/taglib/include" ABSOLUTE)

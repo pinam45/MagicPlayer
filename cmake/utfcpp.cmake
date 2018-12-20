@@ -1,6 +1,6 @@
 message(STATUS "Configuring utfcpp")
 
-get_filename_component(UTFCPP_DIR ${CMAKE_SOURCE_DIR}/deps/utfcpp ABSOLUTE)
+get_filename_component(UTFCPP_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/utfcpp ABSOLUTE)
 
 # Submodule check
 cmutils_directory_is_empty(is_empty "${UTFCPP_DIR}")
