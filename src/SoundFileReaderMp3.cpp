@@ -273,7 +273,7 @@ sf::Uint64 SoundFileReaderMp3::read(sf::Int16* samples, sf::Uint64 maxCount)
 	size_t done = 0;
 	const int error = mpg123_read(
 	  m_handle, reinterpret_cast<unsigned char*>(samples), maxCount * sizeof(sf::Int16), &done);
-	if(error != MPG123_OK && error != MPG123_NEW_FORMAT)
+	if(error != MPG123_OK && error != MPG123_NEW_FORMAT && error != MPG123_DONE)
 	{
 		sf::err() << "Failed to read stream with mpg123: " << mpg123_plain_strerror(error)
 		          << std::endl;
