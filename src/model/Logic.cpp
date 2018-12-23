@@ -317,15 +317,17 @@ void Logic::sendFolderContent(std::filesystem::path path)
 		{
 			if(directory_error)
 			{
-				SPDLOG_DEBUG(
-				  m_logger, "is_directory failed on entry {}: {}", entry.path(), error.message());
+				SPDLOG_DEBUG(m_logger,
+				             "is_directory failed on entry {}: {}",
+				             entry.path(),
+				             directory_error.message());
 			}
 			if(file_error)
 			{
 				SPDLOG_DEBUG(m_logger,
 				             "is_regular_file failed on entry {}: {}",
 				             entry.path(),
-				             error.message());
+				             file_error.message());
 			}
 			continue;
 		}
