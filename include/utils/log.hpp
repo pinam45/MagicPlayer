@@ -10,6 +10,8 @@
 
 #include "utils/path_utils.hpp"
 
+#include <spdlog/fmt/ostr.h>
+
 constexpr const char* GENERAL_LOGGER_NAME = "general";
 constexpr const char* LOGIC_LOGGER_NAME = "logic";
 constexpr const char* VIEW_LOGGER_NAME = "view";
