@@ -45,8 +45,8 @@ public:
 	void iterate_on_logs(T callable);
 
 protected:
-	void sink_it_(const spdlog::details::log_msg& msg) final;
-	void flush_() final;
+	void sink_it_(const spdlog::details::log_msg& msg) override;
+	void flush_() override;
 
 private:
 	std::vector<store_log> logs;
