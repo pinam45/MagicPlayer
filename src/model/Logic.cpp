@@ -7,6 +7,7 @@
 //
 #include "model/Logic.hpp"
 #include "utils/log.hpp"
+#include "utils/audio_extensions.hpp"
 
 #include "SoundFileReaderMp3.hpp"
 
@@ -18,11 +19,6 @@
 
 namespace
 {
-	constexpr std::array<std::string_view, 4> SUPPORTED_AUDIO_EXTENSIONS = {".vaw",
-	                                                                        ".ogg",
-	                                                                        ".flac",
-	                                                                        ".mp3"};
-
 	std::once_flag SFML_inited;
 	void init_SFML()
 	{
@@ -307,11 +303,7 @@ void Logic::sendFolderContent(std::filesystem::path path)
 				continue;
 			}
 			infos.file_size = entry.file_size(error);
-			infos.has_supported_audio_extension =
-			  std::find(std::cbegin(SUPPORTED_AUDIO_EXTENSIONS),
-			            std::cend(SUPPORTED_AUDIO_EXTENSIONS),
-			            path_to_generic_utf8_string(entry.path().extension()))
-			  != std::cend(SUPPORTED_AUDIO_EXTENSIONS);
+			infos.has_supported_audio_extension = hasSupportedAudioExtension(entry.path());
 		}
 		else
 		{
