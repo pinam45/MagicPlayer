@@ -18,7 +18,7 @@
 class FileExplorer final
 {
 public:
-	FileExplorer(std::string name, shared_queue<Msg::Com::InMessage>& com_in);
+	FileExplorer(std::string name, Msg::Sender sender);
 
 	void init();
 
@@ -27,10 +27,7 @@ public:
 	void processMessage(Msg::Out::FolderContent& message);
 
 private:
-	template<typename Message, typename... Args>
-	void sendMessage(Args&&... args);
-
-	shared_queue<Msg::Com::InMessage>& m_com_in;
+	Msg::Sender m_sender;
 
 	std::string m_name;
 	std::array<char, 2018> m_user_path;

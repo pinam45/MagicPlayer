@@ -75,7 +75,7 @@ GUI::GUI(Msg::Com& com_)
   , m_style(ImGui::ETheming::ColorTheme::ArcDark)
   , m_normal_font(nullptr)
   , m_large_font(nullptr)
-  , m_file_explorer(INNER_WINDOW_EXPLORER_NAME, m_com.in)
+  , m_file_explorer(INNER_WINDOW_EXPLORER_NAME, Msg::Sender(m_com))
   , m_log_viewer(INNER_WINDOW_LOG_VIEWER_NAME)
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
 {

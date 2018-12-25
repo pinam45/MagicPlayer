@@ -43,3 +43,7 @@ Msg::Out::FolderContent::FolderContent(std::filesystem::path path_,
   : path(std::move(path_)), content(std::move(content_))
 {
 }
+
+Msg::Sender::Sender(Msg::Com& com) noexcept: m_com(com)
+{
+}

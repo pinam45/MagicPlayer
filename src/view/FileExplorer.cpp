@@ -19,14 +19,8 @@ namespace
 	constexpr const char* DEFAULT_PATH = "./";
 } // namespace
 
-template<typename Message, typename... Args>
-void FileExplorer::sendMessage(Args&&... args)
-{
-	m_com_in.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
-}
-
-FileExplorer::FileExplorer(std::string name, shared_queue<Msg::Com::InMessage>& com_in)
-  : m_com_in(com_in)
+FileExplorer::FileExplorer(std::string name, Msg::Sender sender)
+  : m_sender(sender)
   , m_name(std::move(name))
   , m_user_path()
   , m_path(DEFAULT_PATH)
@@ -43,7 +37,7 @@ FileExplorer::FileExplorer(std::string name, shared_queue<Msg::Com::InMessage>& 
 
 void FileExplorer::init()
 {
-	sendMessage<Msg::In::Open>(m_path);
+	m_sender.sendInMessage<Msg::In::Open>(m_path);
 }
 
 void FileExplorer::show()
@@ -86,7 +80,7 @@ void FileExplorer::show()
 				{
 					if(ImGui::MenuItem(std::get<0>(m_sub_paths[i]).c_str()))
 					{
-						sendMessage<Msg::In::Open>(std::get<1>(m_sub_paths[i]));
+						m_sender.sendInMessage<Msg::In::Open>(std::get<1>(m_sub_paths[i]));
 					}
 				}
 				ImGui::EndPopup();
@@ -100,7 +94,7 @@ void FileExplorer::show()
 		{
 			if(ImGui::Button(std::get<0>(m_sub_paths[i]).c_str()))
 			{
-				sendMessage<Msg::In::Open>(std::get<1>(m_sub_paths[i]));
+				m_sender.sendInMessage<Msg::In::Open>(std::get<1>(m_sub_paths[i]));
 			}
 			ImGui::SameLine(0, 0);
 		}
@@ -122,7 +116,7 @@ void FileExplorer::show()
 			if(utf8_string_to_path(m_user_path.data(), file_path))
 			{
 				m_logger->info("Request to open {}", file_path);
-				sendMessage<Msg::In::Open>(std::move(file_path));
+				m_sender.sendInMessage<Msg::In::Open>(std::move(file_path));
 			}
 			else
 			{
@@ -176,7 +170,7 @@ void FileExplorer::show()
 			}
 			if(ImGui::IsItemClicked() && ImGui::IsMouseDoubleClicked(0))
 			{
-				sendMessage<Msg::In::Open>(m_content[i].path);
+				m_sender.sendInMessage<Msg::In::Open>(m_content[i].path);
 			}
 		}
 	}

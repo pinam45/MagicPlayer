@@ -137,17 +137,47 @@ namespace Msg
 		template<typename Message, typename... Args>
 		void sendOutMessage(Args&&... args);
 	};
+
+	// Com proxy for sending messages
+	struct Sender final
+	{
+		explicit Sender(Com& com) noexcept;
+
+		template<typename Message, typename... Args>
+		void sendInMessage(Args&&... args);
+
+		template<typename Message, typename... Args>
+		void sendOutMessage(Args&&... args);
+
+	private:
+		Com& m_com;
+	};
 } // namespace Msg
 
 template<typename Message, typename... Args>
-void Msg::Com::sendInMessage(Args&& ... args) {
+void Msg::Com::sendInMessage(Args&&... args)
+{
 	in.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
 }
 
 template<typename Message, typename... Args>
-void Msg::Com::sendOutMessage(Args&& ... args) {
+void Msg::Com::sendOutMessage(Args&&... args)
+{
 	out.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
 }
+
+template<typename Message, typename... Args>
+void Msg::Sender::sendInMessage(Args&&... args)
+{
+	m_com.sendInMessage<Message>(std::forward<Args>(args)...);
+}
+
+template<typename Message, typename... Args>
+void Msg::Sender::sendOutMessage(Args&&... args)
+{
+	m_com.sendOutMessage<Message>(std::forward<Args>(args)...);
+}
+
 inline std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::In::Close& m)
 {
 	return os << "Close{}";
