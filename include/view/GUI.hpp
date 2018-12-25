@@ -27,9 +27,6 @@ public:
 	int run();
 
 private:
-	template<typename Message, typename... Args>
-	void sendMessage(Args&&... args);
-
 	template<typename Message>
 	void handleMessage(Message& message) = delete;
 

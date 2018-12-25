@@ -117,7 +117,7 @@ namespace Msg
 		std::ostream& operator<<(std::ostream& os, const FolderContent& m);
 	} // namespace Out
 
-	struct Com
+	struct Com final
 	{
 		typedef std::variant<In::Close,
 		                     In::Open,
@@ -130,9 +130,24 @@ namespace Msg
 		typedef std::variant<Out::MusicOffset, Out::MusicInfo, Out::FolderContent> OutMessage;
 		shared_queue<InMessage> in;
 		shared_queue<OutMessage, true> out;
+
+		template<typename Message, typename... Args>
+		void sendInMessage(Args&&... args);
+
+		template<typename Message, typename... Args>
+		void sendOutMessage(Args&&... args);
 	};
 } // namespace Msg
 
+template<typename Message, typename... Args>
+void Msg::Com::sendInMessage(Args&& ... args) {
+	in.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
+}
+
+template<typename Message, typename... Args>
+void Msg::Com::sendOutMessage(Args&& ... args) {
+	out.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
+}
 inline std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::In::Close& m)
 {
 	return os << "Close{}";

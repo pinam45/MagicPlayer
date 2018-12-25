@@ -30,12 +30,6 @@ namespace
 	}
 } // namespace
 
-template<typename Message, typename... Args>
-void Logic::sendMessage(Args&&... args)
-{
-	m_com.out.emplace_back(std::in_place_type_t<Message>{}, std::forward<Args>(args)...);
-}
-
 template<>
 void Logic::handleMessage([[maybe_unused]] Msg::In::Close& message)
 {
@@ -157,13 +151,13 @@ void Logic::handleMessage(Msg::In::MusicOffset& message)
 	{
 		m_logger->warn("Invalid music offset requested: {:.2f} seconds", message.seconds);
 	}
-	sendMessage<Msg::Out::MusicOffset>(m_music.getPlayingOffset().asSeconds());
+	m_com.sendOutMessage<Msg::Out::MusicOffset>(m_music.getPlayingOffset().asSeconds());
 }
 
 template<>
 void Logic::handleMessage([[maybe_unused]] Msg::In::RequestMusicOffset& message)
 {
-	sendMessage<Msg::Out::MusicOffset>(m_music.getPlayingOffset().asSeconds());
+	m_com.sendOutMessage<Msg::Out::MusicOffset>(m_music.getPlayingOffset().asSeconds());
 }
 
 template<>
@@ -226,7 +220,7 @@ void Logic::loadFile(std::filesystem::path path)
 	{
 		m_logger->warn("Tried to load file with invalid utf8 path: {}",
 		               invalid_utf8_path_representation(path));
-		sendMessage<Msg::Out::MusicInfo>(false, 0);
+		m_com.sendOutMessage<Msg::Out::MusicInfo>(false, 0);
 		return;
 	}
 
@@ -235,12 +229,12 @@ void Logic::loadFile(std::filesystem::path path)
 		m_music.play();
 		m_logger->info("Loaded {}", path);
 		m_logger->info("Music played");
-		sendMessage<Msg::Out::MusicInfo>(true, m_music.getDuration().asSeconds());
+		m_com.sendOutMessage<Msg::Out::MusicInfo>(true, m_music.getDuration().asSeconds());
 	}
 	else
 	{
 		m_logger->warn("Failed to load {}", path);
-		sendMessage<Msg::Out::MusicInfo>(false, 0);
+		m_com.sendOutMessage<Msg::Out::MusicInfo>(false, 0);
 	}
 }
 
@@ -332,5 +326,5 @@ void Logic::sendFolderContent(std::filesystem::path path)
 		  return std::make_tuple(!lhs.is_folder, lhs.file_name)
 		         < std::make_tuple(!rhs.is_folder, rhs.file_name);
 	  });
-	sendMessage<Msg::Out::FolderContent>(path, std::move(path_infos));
+	m_com.sendOutMessage<Msg::Out::FolderContent>(path, std::move(path_infos));
 }
