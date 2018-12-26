@@ -47,3 +47,85 @@ Msg::Out::FolderContent::FolderContent(std::filesystem::path path_,
 Msg::Sender::Sender(Msg::Com& com) noexcept: m_com(com)
 {
 }
+
+std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::In::Close& m)
+{
+	return os << "Close{}";
+}
+
+std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Open& m)
+{
+	return os << "Open{"
+	          << "path: " << m.path << "}";
+}
+
+std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Control::Action& a)
+{
+	// Not beautiful but only used for logging purpose...
+	constexpr const char* ACTION_STR[] = {
+	  "PLAY",
+	  "PAUSE",
+	  "STOP",
+	};
+	return os << ACTION_STR[static_cast<std::size_t>(a)];
+}
+
+std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Control& m)
+{
+	return os << "Control{"
+	          << "action: " << m.action << "}";
+}
+
+std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Volume& m)
+{
+	ostream_config_guard guard(os, std::boolalpha, std::fixed, std::setprecision(2));
+	return os << "Volume{"
+	          << "muted: " << m.muted << ","
+	          << "volume:" << m.volume << "}";
+}
+
+std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::MusicOffset& m)
+{
+	return os << "MusicOffset{"
+	          << "seconds: " << m.seconds << "}";
+}
+
+std::ostream& Msg::In::operator<<(std::ostream& os,
+                                  [[maybe_unused]] const Msg::In::RequestMusicOffset& m)
+{
+	return os << "RequestMusicOffset{}";
+}
+
+std::ostream& Msg::In::operator<<(std::ostream& os,
+                                  [[maybe_unused]] const Msg::In::InnerTaskEnded& m)
+{
+	return os << "InnerTaskEnded{}";
+}
+
+std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::MusicOffset& m)
+{
+	return os << "MusicOffset{"
+	          << "seconds: " << m.seconds << "}";
+}
+
+std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::MusicInfo& m)
+{
+	ostream_config_guard guard(os, std::boolalpha, std::fixed, std::setprecision(2));
+	return os << "MusicInfo{"
+	          << "valid: " << m.valid << ","
+	          << "durationSeconds:" << m.durationSeconds << "}";
+}
+
+std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::FolderContent& m)
+{
+	os << "FolderContent{"
+	   << "path: " << m.path << ","
+	   << "content: [";
+	for(const auto& info: m.content)
+	{
+		os << info << ",";
+	}
+	os << "]}";
+
+	return os;
+}
