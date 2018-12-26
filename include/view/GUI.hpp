@@ -11,6 +11,7 @@
 #include "model/Messages.hpp"
 #include "view/imgui_easy_theming.hpp"
 #include "view/FileExplorer.hpp"
+#include "view/Player.hpp"
 #include "view/LogViewer.hpp"
 
 #include <imgui.h>
@@ -32,7 +33,6 @@ private:
 
 	void show();
 	void showMainDockspace();
-	void showPlayer();
 
 	void loadInitialConfig();
 
@@ -42,23 +42,13 @@ private:
 
 	void processMessages();
 
-	struct MusicInfos
-	{
-		bool valid;
-		float offset;
-		float duration;
-
-		MusicInfos() noexcept = default;
-	};
-	MusicInfos m_musicInfos;
-
 	Msg::Com& m_com;
 	bool m_showThemeConfigWindow;
 	bool m_showLogViewerWindow;
-	float m_volume;
 	ImGui::ETheming::ColorTheme m_style;
 
 	FileExplorer m_file_explorer;
+	Player m_player;
 	LogViewer m_log_viewer;
 
 	std::shared_ptr<spdlog::logger> m_logger;
