@@ -8,6 +8,7 @@
 #include "view/GUI.hpp"
 #include "view/imgui_easy_theming.hpp"
 #include "view/imgui_custom_widgets.hpp"
+#include "view/FontManager.hpp"
 #include "utils/log.hpp"
 
 #include <IconsFontAwesome5.h>
@@ -28,12 +29,6 @@ namespace
 	constexpr float MUSIC_INITIAL_VOLUME = 20.0f;
 	constexpr float MUSIC_OFFSET_REFRESH_SECONDS = 0.1f;
 	constexpr unsigned int FRAME_RATE_LIMIT = 60;
-	constexpr const char* DROID_SANS_MONO_FONT_PATH = "resources/fonts/DroidSans/DroidSansMono.ttf";
-	constexpr const char* FONTAWESOME_FONT_PATH =
-	  "resources/fonts/fontawesome-free-5.4.0/" FONT_ICON_FILE_NAME_FAS;
-	constexpr const char* DEFAULT_FONT_PATH = DROID_SANS_MONO_FONT_PATH;
-	constexpr float DEFAULT_FONT_SIZE = 13.5f;
-	constexpr float LARGE_FONT_SIZE = 22.0f;
 	constexpr const char* INNER_WINDOW_MAIN_NAME = "Main";
 	constexpr const char* MAIN_DOCKSPACE_NAME = "Main dockspace";
 	constexpr const char* INNER_WINDOW_PLAYER_NAME = "Player";
@@ -73,8 +68,6 @@ GUI::GUI(Msg::Com& com_)
   , m_showLogViewerWindow(false)
   , m_volume(MUSIC_INITIAL_VOLUME)
   , m_style(ImGui::ETheming::ColorTheme::ArcDark)
-  , m_normal_font(nullptr)
-  , m_large_font(nullptr)
   , m_file_explorer(INNER_WINDOW_EXPLORER_NAME, Msg::Sender(m_com))
   , m_log_viewer(INNER_WINDOW_LOG_VIEWER_NAME)
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
@@ -237,7 +230,7 @@ void GUI::showMainDockspace()
 void GUI::showPlayer()
 {
 	ImGui::Begin(INNER_WINDOW_PLAYER_NAME);
-	ImGui::PushFont(m_large_font);
+	FontManager::pushFontSize(FontManager::LARGE_FONT_SIZE);
 
 	if(m_musicInfos.valid)
 	{
@@ -304,45 +297,8 @@ void GUI::showPlayer()
 	}
 	ImGui::PopItemWidth();
 
-	ImGui::PopFont();
+	FontManager::popFontSize();
 	ImGui::End();
-}
-
-ImFont* GUI::loadFonts(float pixel_size)
-{
-	ImGuiIO& io = ImGui::GetIO();
-
-	static constexpr ImWchar font_ranges[] = {0x0001, 0xFFFF, 0};
-	ImFont* default_font =
-	  io.Fonts->AddFontFromFileTTF(DEFAULT_FONT_PATH, pixel_size, nullptr, font_ranges);
-	if(default_font)
-	{
-		SPDLOG_DEBUG(m_logger, "Loaded font {} {:.2f}px", DEFAULT_FONT_PATH, pixel_size);
-	}
-	else
-	{
-		io.Fonts->AddFontDefault();
-		m_logger->warn("Failed to load font {}: use default font instead", DEFAULT_FONT_PATH);
-	}
-
-	static constexpr ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
-	ImFontConfig icons_config;
-	icons_config.MergeMode = true;
-	icons_config.PixelSnapH = true;
-	icons_config.GlyphMinAdvanceX = pixel_size;
-	ImFont* font =
-	  io.Fonts->AddFontFromFileTTF(FONTAWESOME_FONT_PATH, pixel_size, &icons_config, icons_ranges);
-	if(font)
-	{
-		SPDLOG_DEBUG(m_logger, "Loaded font {} {:.2f}px", FONTAWESOME_FONT_PATH, pixel_size);
-	}
-	else
-	{
-		m_logger->warn("Failed to load fontawesome ({}): icons disabled", FONTAWESOME_FONT_PATH);
-		font = default_font;
-	}
-
-	return font;
 }
 
 void GUI::setupImGui()
@@ -356,9 +312,8 @@ void GUI::setupImGui()
 
 void GUI::setupFonts()
 {
-	m_normal_font = loadFonts(DEFAULT_FONT_SIZE);
-	m_large_font = loadFonts(LARGE_FONT_SIZE);
-	ImGui::SFML::UpdateFontTexture();
+	FontManager::loadFontSize(FontManager::DEFAULT_FONT_SIZE);
+	FontManager::loadFontSize(FontManager::LARGE_FONT_SIZE);
 	SPDLOG_DEBUG(m_logger, "Setup fonts");
 }
 

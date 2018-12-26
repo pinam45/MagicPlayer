@@ -6,6 +6,7 @@
 // https://opensource.org/licenses/MIT
 //
 #include "utils/log.hpp"
+#include "view/FontManager.hpp"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -47,6 +48,7 @@ bool init_logger()
 			logger->flush_on(spdlog::level::err);
 			spdlog::register_logger(logger);
 		}
+		FontManager::setLogger(spdlog::get(VIEW_LOGGER_NAME));
 
 		spdlog::get(GENERAL_LOGGER_NAME)->info("Logger initialised");
 	}

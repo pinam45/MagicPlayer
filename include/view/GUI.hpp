@@ -59,8 +59,6 @@ private:
 	bool m_showLogViewerWindow;
 	float m_volume;
 	ImGui::ETheming::ColorTheme m_style;
-	ImFont* m_normal_font;
-	ImFont* m_large_font;
 
 	FileExplorer m_file_explorer;
 	LogViewer m_log_viewer;
