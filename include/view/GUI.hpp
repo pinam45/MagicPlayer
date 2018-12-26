@@ -34,8 +34,6 @@ private:
 	void showMainDockspace();
 	void showPlayer();
 
-	ImFont* loadFonts(float pixel_size);
-
 	void loadInitialConfig();
 
 	void setupImGui();
