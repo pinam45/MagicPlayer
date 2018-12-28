@@ -28,11 +28,6 @@ namespace data
 
 		std::filesystem::path path;
 
-		Music(int track_,
-		      std::string title_,
-		      std::chrono::duration<int> length_,
-		      std::filesystem::path path_) noexcept;
-
 		Music(const Music&) = delete;
 		Music& operator=(const Music&) = delete;
 
@@ -40,6 +35,14 @@ namespace data
 		Music& operator=(Music&& m) noexcept = default;
 
 		~Music() noexcept = default;
+
+	private:
+		friend class DataManager;
+
+		Music(int track,
+		      std::string title,
+		      std::chrono::duration<int> length,
+		      std::filesystem::path path) noexcept;
 	};
 } // namespace data
 

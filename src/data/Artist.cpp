@@ -6,8 +6,57 @@
 // https://opensource.org/licenses/MIT
 //
 #include "data/Artist.hpp"
+#include "utils/IdGenerator.hpp"
 
 #include <cassert>
+
+std::vector<const data::Music*> data::Artist::findMusics(std::uint64_t search_id) const noexcept
+{
+	assert(search_id != IdGenerator::INVALID_ID);
+	std::vector<const data::Music*> found_musics;
+
+	if(search_id == id)
+	{
+		// return all musics of the artist
+		for(const Album& album: albums)
+		{
+			for(const Music& music: album.musics)
+			{
+				found_musics.push_back(&music);
+			}
+		}
+		return found_musics;
+	}
+
+	// search album
+	std::vector<Album>::const_iterator it = std::lower_bound(
+	  albums.cbegin(), albums.cend(), search_id, [](const Album& album, std::uint64_t wanted_id) {
+		  return album.id < wanted_id;
+	  });
+	if(it == albums.cend())
+	{
+		return found_musics;
+	}
+
+	if(it->id == search_id)
+	{
+		// return all musics of the album
+		for(const Music& music: it->musics)
+		{
+			found_musics.push_back(&music);
+		}
+		return found_musics;
+	}
+
+	const Music* music = it->findMusic(search_id);
+	if(music != nullptr)
+	{
+		// return a music of the album
+		found_musics.push_back(music);
+	}
+
+	return found_musics;
+}
 
 data::Artist::Artist(std::string name_) noexcept: id(), name(std::move(name_)), albums()
 {

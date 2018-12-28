@@ -35,14 +35,6 @@ namespace data
 		std::unique_ptr<sf::Image> image;
 		std::vector<Music> musics;
 
-		Album(std::string name, std::string genre, int year) noexcept;
-
-		Album(std::string name,
-		      std::string genre,
-		      int year,
-		      const void* image_data,
-		      std::size_t image_size) noexcept;
-
 		Album(const Album&) = delete;
 		Album& operator=(const Album&) = delete;
 
@@ -50,6 +42,19 @@ namespace data
 		Album& operator=(Album&&) noexcept = default;
 
 		~Album() noexcept = default;
+
+		const Music* findMusic(std::uint64_t id) const noexcept;
+
+	private:
+		friend class DataManager;
+
+		Album(std::string name, std::string genre, int year) noexcept;
+
+		Album(std::string name,
+		      std::string genre,
+		      int year,
+		      const void* image_data,
+		      std::size_t image_size) noexcept;
 
 		void addMusic(Music&& music) noexcept;
 	};

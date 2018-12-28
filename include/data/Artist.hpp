@@ -24,8 +24,6 @@ namespace data
 
 		std::vector<Album> albums;
 
-		explicit Artist(std::string name_) noexcept;
-
 		Artist(const Artist&) = delete;
 		Artist& operator=(const Artist&) = delete;
 
@@ -33,6 +31,13 @@ namespace data
 		Artist& operator=(Artist&&) noexcept = default;
 
 		~Artist() noexcept = default;
+
+		std::vector<const Music*> findMusics(std::uint64_t id) const noexcept;
+
+	private:
+		friend class DataManager;
+
+		explicit Artist(std::string name_) noexcept;
 
 		void addAlbum(Album&& album) noexcept;
 	};

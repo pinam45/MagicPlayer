@@ -6,9 +6,25 @@
 // https://opensource.org/licenses/MIT
 //
 #include "data/Album.hpp"
+#include "utils/IdGenerator.hpp"
 
 #include <utility>
 #include <cassert>
+
+const data::Music* data::Album::findMusic(std::uint64_t search_id) const noexcept
+{
+	assert(search_id != IdGenerator::INVALID_ID);
+	if(id <= search_id)
+	{
+		return nullptr;
+	}
+	size_t pos = search_id - id;
+	if(pos >= musics.size())
+	{
+		return nullptr;
+	}
+	return &musics[pos];
+}
 
 data::Album::Album(std::string name_, std::string genre_, int year_) noexcept
   : id()
