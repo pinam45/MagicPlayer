@@ -14,6 +14,8 @@
 class IdGenerator
 {
 public:
+	static constexpr std::uint64_t INVALID_ID = 0;
+
 	IdGenerator() noexcept = default;
 
 	IdGenerator(const IdGenerator&) = delete;
@@ -31,7 +33,7 @@ public:
 
 private:
 	std::mutex m_mutex;
-	std::uint64_t m_next_id = 1; // keep 0 for invalid id
+	std::uint64_t m_next_id = INVALID_ID + 1;
 #ifndef NDEBUG
 	bool m_debug_locked = false;
 #endif
