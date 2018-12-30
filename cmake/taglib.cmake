@@ -56,8 +56,8 @@ while(folders_list_length GREATER 0)
 endwhile()
 
 # Add definitions
-target_compile_definitions(tag PRIVATE TAGLIB_STATIC)
-target_compile_definitions(tag PRIVATE HAVE_CONFIG_H)
+target_compile_definitions(tag PUBLIC TAGLIB_STATIC)
+target_compile_definitions(tag PUBLIC HAVE_CONFIG_H)
 
 # Configure compile options
 cmutils_target_configure_compile_options(tag)
