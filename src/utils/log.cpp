@@ -9,8 +9,10 @@
 #include "view/FontManager.hpp"
 
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/null_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
+#include <taglib/tdebuglistener.h>
 
 #include <iostream>
 
@@ -19,6 +21,19 @@ namespace
 	constexpr const char* LOG_FILENAME = "log.txt";
 	constexpr std::size_t LOG_MAX_SIZE = 1024 * 1024 * 5;
 	constexpr std::size_t LOG_MAX_FILES = 3;
+
+	struct TagLibLogger final : public TagLib::DebugListener {
+		void printMessage(const TagLib::String &msg) override;
+
+		std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("null", std::make_shared<spdlog::sinks::null_sink_st>());
+	};
+
+	void TagLibLogger::printMessage(const TagLib::String& msg) {
+		std::string_view view(msg.to8Bit(true));
+		view.remove_suffix(1); // remove trailing '\n'
+		SPDLOG_DEBUG(logger, "{}", view);
+	}
+	TagLibLogger TAGLIB_LOGGER;
 } // namespace
 
 bool init_logger()
@@ -48,7 +63,11 @@ bool init_logger()
 			logger->flush_on(spdlog::level::err);
 			spdlog::register_logger(logger);
 		}
+
 		FontManager::setLogger(spdlog::get(VIEW_LOGGER_NAME));
+
+		TAGLIB_LOGGER.logger = spdlog::get(LOGIC_LOGGER_NAME);
+		TagLib::setDebugListener(&TAGLIB_LOGGER);
 
 		spdlog::get(GENERAL_LOGGER_NAME)->info("Logger initialised");
 	}
