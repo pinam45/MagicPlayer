@@ -31,6 +31,7 @@ include(cmake/spdlog.cmake)
 include(cmake/IconFontCppHeaders.cmake)
 include(cmake/utfcpp.cmake)
 include(cmake/taglib.cmake)
+include(cmake/json.cmake)
 
 # Declare MagicPlayer
 add_executable(MagicPlayer)
@@ -60,6 +61,7 @@ target_include_directories(
 	"${ICON_FONT_CPP_HEADERS_INCLUDE_DIR}"
 	"${UTFCPP_INCLUDE_DIR}"
 	"${TAGLIB_INCLUDE_DIR}"
+	"${JSON_INCLUDE_DIR}"
 )
 
 # Link dependencies
@@ -73,6 +75,7 @@ target_link_libraries(
   ${ICON_FONT_CPP_HEADERS_LIBRARY}
   ${UTFCPP_LIBRARY}
   ${TAGLIB_LIBRARY}
+  ${JSON_LIBRARY}
 )
 
 # Link threads library
