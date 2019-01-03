@@ -11,6 +11,7 @@
 #include "utils/shared_queue.hpp"
 #include "utils/ostream_config_guard.hpp"
 #include "model/PathInfo.hpp"
+#include "data/Database.hpp"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -115,6 +116,14 @@ namespace Msg
 			FolderContent(std::filesystem::path path, std::vector<PathInfo>&& content);
 		};
 		std::ostream& operator<<(std::ostream& os, const FolderContent& m);
+
+		struct Database
+		{
+			std::shared_ptr<const data::Database> database;
+
+			explicit Database(std::shared_ptr<const data::Database> database);
+		};
+		std::ostream& operator<<(std::ostream& os, const Database& m);
 	} // namespace Out
 
 	struct Com final

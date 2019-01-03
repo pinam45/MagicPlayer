@@ -6,6 +6,7 @@
 // https://opensource.org/licenses/MIT
 //
 #include "model/Messages.hpp"
+#include "utils/log.hpp"
 
 Msg::In::Open::Open(std::filesystem::path path_): path(std::move(path_))
 {
@@ -41,6 +42,11 @@ Msg::Out::FolderContent::FolderContent(std::filesystem::path path_,
 Msg::Out::FolderContent::FolderContent(std::filesystem::path path_,
                                        std::vector<PathInfo>&& content_)
   : path(std::move(path_)), content(std::move(content_))
+{
+}
+
+Msg::Out::Database::Database(std::shared_ptr<const data::Database> database_)
+  : database(std::move(database_))
 {
 }
 
@@ -124,6 +130,20 @@ std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::FolderConte
 	for(const auto& info: m.content)
 	{
 		os << info << ",";
+	}
+	os << "]}";
+
+	return os;
+}
+
+std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::Database& m)
+{
+	os << "Database{"
+	   << "id: " << m.database->id << ","
+	   << "sources: [";
+	for(const auto& source: m.database->sources)
+	{
+		os << source << ",";
 	}
 	os << "]}";
 
