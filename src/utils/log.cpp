@@ -22,13 +22,15 @@ namespace
 	constexpr std::size_t LOG_MAX_SIZE = 1024 * 1024 * 5;
 	constexpr std::size_t LOG_MAX_FILES = 3;
 
-	struct TagLibLogger final : public TagLib::DebugListener {
-		void printMessage(const TagLib::String &msg) override;
+	struct TagLibLogger final : public TagLib::DebugListener
+	{
+		void printMessage(const TagLib::String& msg) override;
 
-		std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("null", std::make_shared<spdlog::sinks::null_sink_st>());
+		std::shared_ptr<spdlog::logger> logger = NULL_LOGGER;
 	};
 
-	void TagLibLogger::printMessage(const TagLib::String& msg) {
+	void TagLibLogger::printMessage(const TagLib::String& msg)
+	{
 		std::string_view view(msg.to8Bit(true));
 		view.remove_suffix(1); // remove trailing '\n'
 		SPDLOG_DEBUG(logger, "{}", view);

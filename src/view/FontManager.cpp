@@ -6,12 +6,11 @@
 // https://opensource.org/licenses/MIT
 //
 #include "view/FontManager.hpp"
+#include "utils/log.hpp"
 
 #include <IconsFontAwesome5.h>
 #include <imgui.h>
 #include <imgui-SFML.h>
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/null_sink.h>
 
 #include <mutex>
 #include <unordered_map>
@@ -22,9 +21,6 @@ namespace
 	constexpr const char* FONTAWESOME_FONT_PATH =
 	  "resources/fonts/fontawesome-free-5.4.0/" FONT_ICON_FILE_NAME_FAS;
 	constexpr const char* DEFAULT_FONT_PATH = DROID_SANS_MONO_FONT_PATH;
-
-	std::shared_ptr<spdlog::logger> NULL_LOGGER =
-	  std::make_shared<spdlog::logger>("null", std::make_shared<spdlog::sinks::null_sink_st>());
 
 	struct FontManagerData
 	{

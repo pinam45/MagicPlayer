@@ -10,7 +10,12 @@
 
 #include "utils/path_utils.hpp"
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/null_sink.h>
 #include <spdlog/fmt/ostr.h>
+
+const std::shared_ptr<spdlog::logger> NULL_LOGGER =
+  std::make_shared<spdlog::logger>("null", std::make_shared<spdlog::sinks::null_sink_mt>());
 
 constexpr const char* GENERAL_LOGGER_NAME = "general";
 constexpr const char* LOGIC_LOGGER_NAME = "logic";
