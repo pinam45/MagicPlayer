@@ -22,13 +22,17 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	Logic logic;
-	std::thread logicThread([&]() { logic.run(); });
+	spdlog::get(GENERAL_LOGGER_NAME)->info("MagicPlayer started");
+	{
+		Logic logic;
+		std::thread logicThread([&]() { logic.run(); });
 
-	GUI gui(logic.getCom());
-	gui.run();
+		GUI gui(logic.getCom());
+		gui.run();
 
-	logicThread.join();
+		logicThread.join();
+	}
+	spdlog::get(GENERAL_LOGGER_NAME)->info("MagicPlayer ended");
 
 	return EXIT_SUCCESS;
 }

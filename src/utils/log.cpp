@@ -71,7 +71,7 @@ bool init_logger()
 		TAGLIB_LOGGER.logger = spdlog::get(LOGIC_LOGGER_NAME);
 		TagLib::setDebugListener(&TAGLIB_LOGGER);
 
-		spdlog::get(GENERAL_LOGGER_NAME)->info("Logger initialised");
+		spdlog::get(GENERAL_LOGGER_NAME)->info("Loggers initialised");
 	}
 	catch(const spdlog::spdlog_ex& ex)
 	{
