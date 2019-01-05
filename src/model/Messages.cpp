@@ -24,6 +24,10 @@ Msg::In::MusicOffset::MusicOffset(float seconds_): seconds(seconds_)
 {
 }
 
+Msg::In::Settings::Settings(data::Settings settings_): settings(std::move(settings_))
+{
+}
+
 Msg::Out::MusicOffset::MusicOffset(float seconds_): seconds(seconds_)
 {
 }
@@ -47,6 +51,10 @@ Msg::Out::FolderContent::FolderContent(std::filesystem::path path_,
 
 Msg::Out::Database::Database(std::shared_ptr<const data::Database> database_)
   : database(std::move(database_))
+{
+}
+
+Msg::Out::Settings::Settings(data::Settings settings_): settings(std::move(settings_))
 {
 }
 
@@ -102,6 +110,12 @@ std::ostream& Msg::In::operator<<(std::ostream& os,
 	return os << "RequestMusicOffset{}";
 }
 
+std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::In::Settings& m)
+{
+	return os << "Settings{"
+	          << "settings: " << m.settings << "}";
+}
+
 std::ostream& Msg::In::operator<<(std::ostream& os,
                                   [[maybe_unused]] const Msg::In::InnerTaskEnded& m)
 {
@@ -148,4 +162,10 @@ std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::Database& m
 	os << "]}";
 
 	return os;
+}
+
+std::ostream& Msg::Out::operator<<(std::ostream& os, [[maybe_unused]] const Msg::Out::Settings& m)
+{
+	return os << "Settings{"
+	          << "settings: " << m.settings << "}";
 }

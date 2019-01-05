@@ -12,7 +12,7 @@
 
 #include <vector>
 #include <filesystem>
-#include <optional>
+#include <ostream>
 
 namespace data
 {
@@ -21,6 +21,7 @@ namespace data
 		std::filesystem::path explorer_folder;
 		std::vector<std::filesystem::path> music_sources;
 	};
+	std::ostream& operator<<(std::ostream& os, const Settings& settings);
 
 	bool saveSettings(const Settings& settings,
 	                  const std::shared_ptr<spdlog::logger>& logger = NULL_LOGGER) noexcept;

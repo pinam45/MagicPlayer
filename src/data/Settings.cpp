@@ -6,6 +6,7 @@
 // https://opensource.org/licenses/MIT
 //
 #include "data/Settings.hpp"
+#include "utils/log.hpp"
 #include "utils/path_utils.hpp"
 
 #include <nlohmann/json.hpp>
@@ -18,6 +19,19 @@ namespace
 	constexpr const char* DEFAULT_EXPLORER_FOLDER = "./";
 	constexpr const char* SETTINGS_FILE_PATH = "MagicPlayer_settings.json";
 } // namespace
+
+std::ostream& data::operator<<(std::ostream& os, const Settings& settings)
+{
+	os << "Settings{"
+	   << "explorer_folder: " << settings.explorer_folder << ","
+	   << "music_sources: [";
+	for(const auto& source: settings.music_sources)
+	{
+		os << source << ",";
+	}
+	os << "]}";
+	return os;
+}
 
 bool data::saveSettings(const data::Settings& settings,
                         const std::shared_ptr<spdlog::logger>& logger) noexcept

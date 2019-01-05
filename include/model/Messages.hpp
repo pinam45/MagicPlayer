@@ -12,6 +12,7 @@
 #include "utils/ostream_config_guard.hpp"
 #include "model/PathInfo.hpp"
 #include "data/Database.hpp"
+#include "data/Settings.hpp"
 
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -80,6 +81,14 @@ namespace Msg
 		};
 		std::ostream& operator<<(std::ostream& os, const RequestMusicOffset& m);
 
+		struct Settings
+		{
+			data::Settings settings;
+
+			explicit Settings(data::Settings settings);
+		};
+		std::ostream& operator<<(std::ostream& os, const Settings& m);
+
 		struct InnerTaskEnded
 		{
 		};
@@ -124,6 +133,14 @@ namespace Msg
 			explicit Database(std::shared_ptr<const data::Database> database);
 		};
 		std::ostream& operator<<(std::ostream& os, const Database& m);
+
+		struct Settings
+		{
+			data::Settings settings;
+
+			explicit Settings(data::Settings settings);
+		};
+		std::ostream& operator<<(std::ostream& os, const Settings& m);
 	} // namespace Out
 
 	struct Com final
