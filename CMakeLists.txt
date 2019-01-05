@@ -102,11 +102,11 @@ cmutils_target_set_standard(MagicPlayer CXX 17)
 cmutils_target_set_runtime(MagicPlayer STATIC)
 
 # Enable sanitizers in debug
-cmutils_target_enable_sanitizers(
-	MagicPlayer
-	ADDRESS LEAK UNDEFINED MEMORY
-	DEBUG
-)
+#cmutils_target_enable_sanitizers(
+#	MagicPlayer
+#	ADDRESS LEAK UNDEFINED MEMORY
+#	DEBUG
+#)
 
 # WinMain config
 if(TARGET sfml-main)
