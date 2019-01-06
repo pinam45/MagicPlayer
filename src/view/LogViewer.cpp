@@ -10,8 +10,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <cassert>
 #include <utility>
-#include <view/LogViewer.hpp>
 
 namespace
 {
@@ -28,13 +28,12 @@ namespace
 } // namespace
 
 LogViewer::LogViewer(std::string name)
-  : m_logs_sink(std::make_shared<store_sink_mt>())
-  , m_watched_loggers()
-  , m_logs_colors()
+  : m_logs_colors()
   , m_name(std::move(name))
   , m_auto_scroll(true)
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
 {
+	assert(STORED_LOGS != nullptr);
 	m_logs_colors[spdlog::level::trace] = {
 	  LOG_TRACE_COLOR[0], LOG_TRACE_COLOR[1], LOG_TRACE_COLOR[2], 1.0};
 	m_logs_colors[spdlog::level::debug] = {
@@ -48,65 +47,6 @@ LogViewer::LogViewer(std::string name)
 	  LOG_CRITICAL_COLOR[0], LOG_CRITICAL_COLOR[1], LOG_CRITICAL_COLOR[2], 1.0};
 	m_logs_colors[spdlog::level::off] = {
 	  LOG_DEFAULT_COLOR[0], LOG_DEFAULT_COLOR[1], LOG_DEFAULT_COLOR[2], 1.0};
-}
-
-LogViewer::~LogViewer()
-{
-	for(auto& logger: m_watched_loggers)
-	{
-		auto it = std::find(logger->sinks().cbegin(), logger->sinks().cend(), m_logs_sink);
-		if(it == logger->sinks().cend())
-		{
-			m_logger->warn("Found not watched logger in watched loggers list");
-			continue;
-		}
-		logger->sinks().erase(it);
-		SPDLOG_DEBUG(m_logger, "Stopped to watch logger \"{}\"", logger->name());
-	}
-}
-
-void LogViewer::watch_logger(const std::shared_ptr<spdlog::logger>& logger)
-{
-	if(std::find(logger->sinks().cbegin(), logger->sinks().cend(), m_logs_sink)
-	   != logger->sinks().cend())
-	{
-		SPDLOG_DEBUG(
-		  m_logger, "Tried to watch logger \"{}\" that is already watched", logger->name());
-		return;
-	}
-	logger->sinks().push_back(m_logs_sink);
-	SPDLOG_DEBUG(m_logger, "Started to watch logger \"{}\"", logger->name());
-
-	if(std::find(m_watched_loggers.cbegin(), m_watched_loggers.cend(), logger)
-	   != m_watched_loggers.cend())
-	{
-		m_logger->warn("Newly watched logger \"{}\" was already in watched loggers list",
-		               logger->name());
-		return;
-	}
-	m_watched_loggers.push_back(logger);
-}
-
-void LogViewer::unwatch_logger(const std::shared_ptr<spdlog::logger>& logger)
-{
-	auto it = std::find(logger->sinks().cbegin(), logger->sinks().cend(), m_logs_sink);
-	if(it == logger->sinks().cend())
-	{
-		SPDLOG_DEBUG(m_logger, "Tried unwatch logger \"{}\" that wasn't watched", logger->name());
-		return;
-	}
-	logger->sinks().erase(it);
-	SPDLOG_DEBUG(m_logger, "Stopped to watch logger \"{}\"", logger->name());
-
-	auto watched_loggers_it =
-	  std::find(m_watched_loggers.cbegin(), m_watched_loggers.cend(), logger);
-	if(watched_loggers_it == m_watched_loggers.cend())
-	{
-		m_logger->warn("Unwatched logger \"{}\" that wasn't in watched loggers list",
-		               logger->name());
-		return;
-	}
-	m_watched_loggers.erase(watched_loggers_it);
 }
 
 void LogViewer::init()
@@ -126,7 +66,7 @@ void LogViewer::show(bool& open)
 	ImGui::Checkbox("Scroll to bottom", &m_auto_scroll);
 	if(ImGui::BeginChild("Logs", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar))
 	{
-		m_logs_sink->iterate_on_logs([this](const store_sink_mt::store_log& log) {
+		STORED_LOGS->iterate_on_logs([this](const store_sink_mt::store_log& log) {
 			if(log.color_range_start < log.color_range_end)
 			{
 				ImGui::TextUnformatted(log.txt.c_str(), log.txt.c_str() + log.color_range_start);

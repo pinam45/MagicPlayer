@@ -245,14 +245,6 @@ void GUI::loadInitialConfig()
 	m_file_explorer.init();
 	m_player.init();
 	m_log_viewer.init();
-	for(const char* logger_name: LOGGERS_NAMES)
-	{
-		auto logger = spdlog::get(logger_name);
-		if(logger)
-		{
-			m_log_viewer.watch_logger(logger);
-		}
-	}
 
 	SPDLOG_DEBUG(m_logger, "Sent initial config messages");
 }
