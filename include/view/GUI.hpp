@@ -13,6 +13,7 @@
 #include "view/FileExplorer.hpp"
 #include "view/Player.hpp"
 #include "view/LogViewer.hpp"
+#include "view/SettingsEditor.hpp"
 
 #include <imgui.h>
 #include <spdlog/logger.h>
@@ -45,11 +46,13 @@ private:
 	Msg::Com& m_com;
 	bool m_showThemeConfigWindow;
 	bool m_showLogViewerWindow;
+	bool m_showSettingsEditor;
 	ImGui::ETheming::ColorTheme m_style;
 
 	FileExplorer m_file_explorer;
 	Player m_player;
 	LogViewer m_log_viewer;
+	SettingsEditor m_settingsEditor;
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };

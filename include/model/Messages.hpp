@@ -84,8 +84,9 @@ namespace Msg
 		struct Settings
 		{
 			data::Settings settings;
+			bool save;
 
-			explicit Settings(data::Settings settings);
+			explicit Settings(data::Settings settings, bool save = true);
 		};
 		std::ostream& operator<<(std::ostream& os, const Settings& m);
 
@@ -151,9 +152,11 @@ namespace Msg
 		                     In::Volume,
 		                     In::MusicOffset,
 		                     In::RequestMusicOffset,
+		                     In::Settings,
 		                     In::InnerTaskEnded>
 		  InMessage;
-		typedef std::variant<Out::MusicOffset, Out::MusicInfo, Out::FolderContent> OutMessage;
+		typedef std::variant<Out::MusicOffset, Out::MusicInfo, Out::FolderContent, Out::Settings>
+		  OutMessage;
 		shared_queue<InMessage> in;
 		shared_queue<OutMessage, true> out;
 

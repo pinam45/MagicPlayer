@@ -14,16 +14,11 @@
 
 #include <sstream>
 
-namespace
-{
-	constexpr const char* DEFAULT_PATH = "./";
-} // namespace
-
 FileExplorer::FileExplorer(std::string name, Msg::Sender sender)
   : m_sender(sender)
   , m_name(std::move(name))
   , m_user_path()
-  , m_path(DEFAULT_PATH)
+  , m_path()
   , m_content()
   , m_formatted_content()
   , selected_content(std::numeric_limits<std::size_t>::max())
@@ -37,7 +32,6 @@ FileExplorer::FileExplorer(std::string name, Msg::Sender sender)
 
 void FileExplorer::init()
 {
-	m_sender.sendInMessage<Msg::In::Open>(m_path);
 }
 
 void FileExplorer::show()

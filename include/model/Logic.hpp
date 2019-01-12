@@ -8,7 +8,8 @@
 #ifndef MAGICPLAYER_LOGIC_HPP
 #define MAGICPLAYER_LOGIC_HPP
 
-#include "Messages.hpp"
+#include "model/Messages.hpp"
+#include "data/Database.hpp"
 
 #include <SFML/Audio/Music.hpp>
 #include <spdlog/logger.h>
@@ -35,10 +36,16 @@ private:
 
 	void sendFolderContent(std::filesystem::path path);
 
+	void async_loadSettings();
+
+	void async_generateDatabase(std::vector<std::filesystem::path> music_sources);
+
 	Msg::Com m_com;
 	bool m_end;
 	sf::Music m_music;
-	std::vector<std::future<void>> m_pending_futures; //TODO: change collection?
+	std::vector<std::future<void>> m_pending_futures;
+	data::Settings m_settings;
+	std::shared_ptr<const data::Database> m_database;
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };

@@ -27,11 +27,17 @@ namespace
 	constexpr unsigned int WINDOW_INITIAL_WIDTH = 900;
 	constexpr unsigned int WINDOW_INITIAL_HEIGHT = 600;
 	constexpr unsigned int FRAME_RATE_LIMIT = 60;
+
 	constexpr const char* INNER_WINDOW_MAIN_NAME = "Main";
 	constexpr const char* MAIN_DOCKSPACE_NAME = "Main dockspace";
 	constexpr const char* INNER_WINDOW_PLAYER_NAME = "Player";
 	constexpr const char* INNER_WINDOW_EXPLORER_NAME = "Explorer";
 	constexpr const char* INNER_WINDOW_LOG_VIEWER_NAME = "Log viewer";
+	constexpr const char* INNER_WINDOW_SETTINGS_EDITOR_NAME = "Settings";
+
+	constexpr const char* MENU_SETTING_TXT = ICON_FA_WRENCH " Settings";
+	constexpr const char* MENU_THEME_TXT = ICON_FA_PAINT_BRUSH " Theme";
+	constexpr const char* MENU_LOG_TXT = ICON_FA_CLIPBOARD_LIST " Logs";
 } // namespace
 
 template<>
@@ -57,14 +63,23 @@ void GUI::handleMessage(Msg::Out::FolderContent& message)
 	m_file_explorer.processMessage(message);
 }
 
+template<>
+void GUI::handleMessage(Msg::Out::Settings& message)
+{
+	m_logger->info("Received settings");
+	m_settingsEditor.processMessage(message);
+}
+
 GUI::GUI(Msg::Com& com_)
   : m_com(com_)
   , m_showThemeConfigWindow(false)
   , m_showLogViewerWindow(false)
+  , m_showSettingsEditor(false)
   , m_style(ImGui::ETheming::ColorTheme::ArcDark)
   , m_file_explorer(INNER_WINDOW_EXPLORER_NAME, Msg::Sender(m_com))
   , m_player(INNER_WINDOW_PLAYER_NAME, Msg::Sender(m_com))
   , m_log_viewer(INNER_WINDOW_LOG_VIEWER_NAME)
+  , m_settingsEditor(INNER_WINDOW_SETTINGS_EDITOR_NAME, Msg::Sender(m_com))
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
 {
 }
@@ -139,6 +154,14 @@ void GUI::show()
 			SPDLOG_DEBUG(m_logger, "Close logs console");
 		}
 	}
+	if(m_showSettingsEditor)
+	{
+		m_settingsEditor.show(m_showSettingsEditor);
+		if(!m_showSettingsEditor)
+		{
+			SPDLOG_DEBUG(m_logger, "Close settings editor");
+		}
+	}
 }
 
 void GUI::showMainDockspace()
@@ -161,9 +184,20 @@ void GUI::showMainDockspace()
 	// Show menu bar
 	if(ImGui::BeginMenuBar())
 	{
-		if(ImGui::BeginMenu("View"))
+		if(ImGui::BeginMenu("Edit"))
 		{
-			if(ImGui::MenuItem("Theme configuration", nullptr, &m_showThemeConfigWindow))
+			if(ImGui::MenuItem(MENU_SETTING_TXT, nullptr, &m_showSettingsEditor))
+			{
+				if(m_showSettingsEditor)
+				{
+					SPDLOG_DEBUG(m_logger, "Show settings editor window");
+				}
+				else
+				{
+					SPDLOG_DEBUG(m_logger, "Hide settings editor window");
+				}
+			}
+			if(ImGui::MenuItem(MENU_THEME_TXT, nullptr, &m_showThemeConfigWindow))
 			{
 				if(m_showThemeConfigWindow)
 				{
@@ -174,7 +208,11 @@ void GUI::showMainDockspace()
 					SPDLOG_DEBUG(m_logger, "Hide theme configuration window");
 				}
 			}
-			if(ImGui::MenuItem("Logs console", nullptr, &m_showLogViewerWindow))
+			ImGui::EndMenu();
+		}
+		if(ImGui::BeginMenu("View"))
+		{
+			if(ImGui::MenuItem(MENU_LOG_TXT, nullptr, &m_showLogViewerWindow))
 			{
 				if(m_showLogViewerWindow)
 				{
@@ -245,6 +283,7 @@ void GUI::loadInitialConfig()
 	m_file_explorer.init();
 	m_player.init();
 	m_log_viewer.init();
+	m_settingsEditor.init();
 
 	SPDLOG_DEBUG(m_logger, "Sent initial config messages");
 }

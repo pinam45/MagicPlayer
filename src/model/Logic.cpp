@@ -8,6 +8,7 @@
 #include "model/Logic.hpp"
 #include "utils/log.hpp"
 #include "utils/audio_extensions.hpp"
+#include "data/DataManager.hpp"
 
 #include "SoundFileReaderMp3.hpp"
 
@@ -73,7 +74,7 @@ void Logic::handleMessage(Msg::In::Open& message)
 		auto process = [this](const std::filesystem::path path) noexcept
 		{
 			sendFolderContent(path);
-			m_com.in.emplace_back(std::in_place_type_t<Msg::In::InnerTaskEnded>{});
+			m_com.sendInMessage<Msg::In::InnerTaskEnded>();
 		};
 		m_pending_futures.push_back(std::async(std::launch::async, process, message.path));
 		return;
@@ -161,6 +162,20 @@ void Logic::handleMessage([[maybe_unused]] Msg::In::RequestMusicOffset& message)
 }
 
 template<>
+void Logic::handleMessage(Msg::In::Settings& message)
+{
+	SPDLOG_DEBUG(m_logger, "Received settings: {}", message.settings);
+	if(message.save)
+	{
+		data::saveSettings(message.settings, m_logger);
+	}
+	//TODO: generate database
+
+	m_settings = std::move(message.settings);
+	m_com.sendOutMessage<Msg::Out::Settings>(m_settings);
+}
+
+template<>
 void Logic::handleMessage([[maybe_unused]] Msg::In::InnerTaskEnded& message)
 {
 	auto it = std::find_if(m_pending_futures.begin(),
@@ -176,7 +191,13 @@ void Logic::handleMessage([[maybe_unused]] Msg::In::InnerTaskEnded& message)
 }
 
 Logic::Logic()
-  : m_com(), m_end(false), m_music(), m_pending_futures(), m_logger(spdlog::get(LOGIC_LOGGER_NAME))
+  : m_com()
+  , m_end(false)
+  , m_music()
+  , m_pending_futures()
+  , m_settings()
+  , m_database(nullptr)
+  , m_logger(spdlog::get(LOGIC_LOGGER_NAME))
 {
 	init_SFML();
 }
@@ -199,6 +220,7 @@ Msg::Com& Logic::getCom()
 
 void Logic::run()
 {
+	async_loadSettings();
 	while(!m_end)
 	{
 		Msg::Com::InMessage message_ = m_com.in.front();
@@ -327,4 +349,29 @@ void Logic::sendFolderContent(std::filesystem::path path)
 		         < std::make_tuple(!rhs.is_folder, rhs.file_name);
 	  });
 	m_com.sendOutMessage<Msg::Out::FolderContent>(path, std::move(path_infos));
+}
+
+void Logic::async_loadSettings()
+{
+	auto process = [this]() noexcept
+	{
+		data::Settings settings = data::loadSettings(m_logger);
+		m_com.sendInMessage<Msg::In::Settings>(settings, false);
+		m_com.sendInMessage<Msg::In::Open>(settings.explorer_folder);
+		m_com.sendOutMessage<Msg::Out::Settings>(std::move(settings));
+
+		m_com.sendInMessage<Msg::In::InnerTaskEnded>();
+	};
+	m_pending_futures.push_back(std::async(std::launch::async, process));
+}
+
+void Logic::async_generateDatabase(std::vector<std::filesystem::path> music_sources_)
+{
+	auto process = [this](std::vector<std::filesystem::path> music_sources) noexcept
+	{
+		//TODO
+
+		m_com.sendInMessage<Msg::In::InnerTaskEnded>();
+	};
+	m_pending_futures.push_back(std::async(std::launch::async, process, std::move(music_sources_)));
 }
