@@ -2,7 +2,7 @@
 
 #include <utf8.h>
 
-bool utf8_string_to_path(const std::string& str, std::filesystem::path& path) noexcept
+bool utf8_string_to_path(const std::string_view str, std::filesystem::path& path) noexcept
 {
 	static_assert(std::is_same<std::filesystem::path::value_type, wchar_t>::value
 	                || std::is_same<std::filesystem::path::value_type, char>::value,
@@ -13,7 +13,7 @@ bool utf8_string_to_path(const std::string& str, std::filesystem::path& path) no
 		try
 		{
 			std::wstring wstr;
-			utf8::utf8to16(str.begin(), str.end(), std::back_inserter(wstr));
+			utf8::utf8to16(str.cbegin(), str.cend(), std::back_inserter(wstr));
 			path = wstr;
 		}
 		catch(...)
@@ -79,7 +79,7 @@ std::string invalid_utf8_path_representation(const std::filesystem::path& path) 
 	return str;
 }
 
-std::filesystem::path utf8_string_to_path(const std::string& str) noexcept
+std::filesystem::path utf8_string_to_path(const std::string_view str) noexcept
 {
 	static_assert(std::is_same<std::filesystem::path::value_type, wchar_t>::value
 	                || std::is_same<std::filesystem::path::value_type, char>::value,
@@ -90,7 +90,7 @@ std::filesystem::path utf8_string_to_path(const std::string& str) noexcept
 		std::wstring wstr;
 		try
 		{
-			utf8::utf8to16(str.begin(), str.end(), std::back_inserter(wstr));
+			utf8::utf8to16(str.cbegin(), str.cend(), std::back_inserter(wstr));
 		}
 		catch(...)
 		{
