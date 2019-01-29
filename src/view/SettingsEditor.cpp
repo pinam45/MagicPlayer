@@ -12,6 +12,8 @@
 #include <IconsFontAwesome5.h>
 #include <view/SettingsEditor.hpp>
 
+#include <sstream>
+
 namespace
 {
 	constexpr int DEFAULT_WIDTH = 600;
