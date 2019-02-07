@@ -42,9 +42,14 @@ template<>
 void Logic::handleMessage(Msg::In::Open& message)
 {
 	SPDLOG_DEBUG(m_logger, "Received open request: {}", message.path);
+	if(!message.path.valid())
+	{
+		m_logger->warn("Tried to open file/folder with invalid utf8 path: {}", message.path);
+		return;
+	}
 
 	std::error_code error;
-	if(!std::filesystem::exists(message.path, error))
+	if(!std::filesystem::exists(message.path.path(), error))
 	{
 		if(error)
 		{
@@ -58,7 +63,7 @@ void Logic::handleMessage(Msg::In::Open& message)
 		return;
 	}
 
-	if(std::filesystem::is_regular_file(message.path, error))
+	if(std::filesystem::is_regular_file(message.path.path(), error))
 	{
 		loadFile(message.path);
 		return;
@@ -69,14 +74,9 @@ void Logic::handleMessage(Msg::In::Open& message)
 		m_logger->warn("Check if path is a regular file failed for: {}", message.path);
 	}
 
-	if(std::filesystem::is_directory(message.path, error))
+	if(std::filesystem::is_directory(message.path.path(), error))
 	{
-		auto process = [this](const std::filesystem::path path) noexcept
-		{
-			sendFolderContent(path);
-			m_com.sendInMessage<Msg::In::InnerTaskEnded>();
-		};
-		m_pending_futures.push_back(std::async(std::launch::async, process, message.path));
+		async_sendFolderContent(message.path.path());
 		return;
 	}
 	if(error)
@@ -235,18 +235,9 @@ void Logic::run()
 	SPDLOG_DEBUG(m_logger, "Main loop ended");
 }
 
-void Logic::loadFile(std::filesystem::path path)
+void Logic::loadFile(const utf8_path& path)
 {
-	std::string path_str;
-	if(!path_to_generic_utf8_string(path, path_str))
-	{
-		m_logger->warn("Tried to load file with invalid utf8 path: {}",
-		               invalid_utf8_path_representation(path));
-		m_com.sendOutMessage<Msg::Out::MusicInfo>(false, 0);
-		return;
-	}
-
-	if(m_music.openFromFile(path_str))
+	if(m_music.openFromFile(path.str_cref()))
 	{
 		m_music.play();
 		m_logger->info("Loaded {}", path);
@@ -260,17 +251,9 @@ void Logic::loadFile(std::filesystem::path path)
 	}
 }
 
-void Logic::sendFolderContent(std::filesystem::path path)
+void Logic::sendFolderContent(const std::filesystem::path& path)
 {
 	std::error_code error;
-	path = std::filesystem::canonical(path, error);
-	if(error)
-	{
-		SPDLOG_DEBUG(m_logger, "std::filesystem::canonical failed: {}", error.message());
-		m_logger->warn("Failed to get canonical path of folder {}", path);
-		return;
-	}
-
 	std::filesystem::directory_iterator directory_iterator(path, error);
 	if(error)
 	{
@@ -292,15 +275,15 @@ void Logic::sendFolderContent(std::filesystem::path path)
 		{
 			infos.is_folder = true;
 			std::filesystem::path folder_name;
-			if(infos.path.has_filename())
+			if(infos.path.path().has_filename())
 			{
 				// path doesn't end by '/', filename() return the folder name
-				folder_name = infos.path.filename();
+				folder_name = infos.path.path().filename();
 			}
 			else
 			{
 				// path end by '/', use parent_path to get folder name
-				folder_name = infos.path.parent_path().filename();
+				folder_name = infos.path.path().parent_path().filename();
 			}
 			if(!path_to_generic_utf8_string(folder_name, infos.file_name))
 			{
@@ -311,7 +294,7 @@ void Logic::sendFolderContent(std::filesystem::path path)
 		}
 		else if(entry.is_regular_file(file_error))
 		{
-			std::filesystem::path file_name = infos.path.filename();
+			std::filesystem::path file_name = infos.path.path().filename();
 			if(!path_to_generic_utf8_string(file_name, infos.file_name))
 			{
 				m_logger->warn("File with invalid utf8 name ignored: {}",
@@ -351,6 +334,17 @@ void Logic::sendFolderContent(std::filesystem::path path)
 	m_com.sendOutMessage<Msg::Out::FolderContent>(path, std::move(path_infos));
 }
 
+void Logic::async_sendFolderContent(const std::filesystem::path& path_)
+{
+	auto process = [this](const std::filesystem::path path) noexcept
+	{
+		sendFolderContent(path);
+
+		m_com.sendInMessage<Msg::In::InnerTaskEnded>();
+	};
+	m_pending_futures.push_back(std::async(std::launch::async, process, path_));
+}
+
 void Logic::async_loadSettings()
 {
 	auto process = [this]() noexcept
@@ -365,9 +359,9 @@ void Logic::async_loadSettings()
 	m_pending_futures.push_back(std::async(std::launch::async, process));
 }
 
-void Logic::async_generateDatabase(std::vector<std::filesystem::path> music_sources_)
+void Logic::async_generateDatabase(std::vector<utf8_path> music_sources_)
 {
-	auto process = [this](std::vector<std::filesystem::path> music_sources) noexcept
+	auto process = [this](std::vector<utf8_path> music_sources) noexcept
 	{
 		//TODO
 

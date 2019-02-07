@@ -10,9 +10,11 @@
 
 #include "data/Database.hpp"
 #include "utils/IdGenerator.hpp"
+#include "utils/path_utils.hpp"
 
 #include <spdlog/logger.h>
 
+#include <filesystem>
 #include <memory>
 
 namespace data
@@ -31,7 +33,7 @@ namespace data
 		~DataManager() noexcept = default;
 
 		[[nodiscard]] std::shared_ptr<const Database> generateDatabase(
-		  const std::vector<std::filesystem::path>& sources);
+		  const std::vector<utf8_path>& sources);
 		[[nodiscard]] std::shared_ptr<const Database> loadDatabase();
 		[[nodiscard]] bool saveDatabase(std::shared_ptr<const Database>& database);
 
@@ -42,10 +44,10 @@ namespace data
 			Album* album = nullptr;
 		};
 
-		bool loadMusicFromFolder(std::filesystem::path folder_path,
+		bool loadMusicFromFolder(const std::filesystem::path& folder_path,
 		                         std::shared_ptr<Database>& database);
 
-		bool loadMusicFromFile(std::filesystem::path file_path,
+		bool loadMusicFromFile(const std::filesystem::path& file_path,
 		                       std::shared_ptr<Database>& database,
 		                       Cache& cache);
 

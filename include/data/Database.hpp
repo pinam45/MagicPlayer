@@ -8,9 +8,9 @@
 #ifndef MAGICPLAYER_DATABASE_HPP
 #define MAGICPLAYER_DATABASE_HPP
 
+#include "utils/path_utils.hpp"
 #include "data/Artist.hpp"
 
-#include <filesystem>
 #include <cstdint>
 
 namespace data
@@ -18,7 +18,7 @@ namespace data
 	struct Database final
 	{
 		std::uint64_t id;
-		std::vector<std::filesystem::path> sources;
+		std::vector<utf8_path> sources;
 
 		std::vector<Artist> artists;
 

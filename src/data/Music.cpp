@@ -10,7 +10,7 @@
 data::Music::Music(int track_,
                    std::string title_,
                    std::chrono::duration<int> length_,
-                   std::filesystem::path path_) noexcept
+                   utf8_path path_) noexcept
   : id()
   , album(nullptr)
   , track(track_)

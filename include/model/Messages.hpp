@@ -10,6 +10,7 @@
 
 #include "utils/shared_queue.hpp"
 #include "utils/ostream_config_guard.hpp"
+#include "utils/path_utils.hpp"
 #include "model/PathInfo.hpp"
 #include "data/Database.hpp"
 #include "data/Settings.hpp"
@@ -21,7 +22,6 @@
 #include <iomanip>
 #include <string>
 #include <variant>
-#include <filesystem>
 
 //TODO: add id to messages to make request/answer connection
 
@@ -38,9 +38,9 @@ namespace Msg
 
 		struct Open
 		{
-			std::filesystem::path path;
+			utf8_path path;
 
-			explicit Open(std::filesystem::path path);
+			explicit Open(utf8_path path);
 		};
 		std::ostream& operator<<(std::ostream& os, const Open& m);
 
@@ -118,12 +118,11 @@ namespace Msg
 
 		struct FolderContent
 		{
-			std::filesystem::path path;
+			utf8_path path;
 			std::vector<PathInfo> content;
 
-			explicit FolderContent(std::filesystem::path path,
-			                       const std::vector<PathInfo>& content = {});
-			FolderContent(std::filesystem::path path, std::vector<PathInfo>&& content);
+			explicit FolderContent(utf8_path path, const std::vector<PathInfo>& content = {});
+			FolderContent(utf8_path path, std::vector<PathInfo>&& content);
 		};
 		std::ostream& operator<<(std::ostream& os, const FolderContent& m);
 

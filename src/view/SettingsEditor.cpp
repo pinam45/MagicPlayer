@@ -29,6 +29,8 @@ namespace
 SettingsEditor::SettingsEditor(std::string name, Msg::Sender sender)
   : m_sender(sender)
   , m_name(std::move(name))
+  , m_explorer_folder_buffer()
+  , m_musics_sources_buffers()
   , m_settings()
   , m_selectedPanel(SettingsPanels::FILES_EXPLORER)
   , m_error_message("")
@@ -244,12 +246,16 @@ void SettingsEditor::showErrorPopupModal() noexcept
 
 void SettingsEditor::revertSettingsInputs() noexcept
 {
-	std::string explorer_folder_txt;
-	if(!path_to_generic_utf8_string(m_settings.explorer_folder, explorer_folder_txt))
+	std::string_view explorer_folder_txt;
+	if(!m_settings.explorer_folder.valid())
 	{
 		m_logger->warn("Settings path contain invalid utf8 characters: {}",
-		               invalid_utf8_path_representation(m_settings.explorer_folder));
+		               m_settings.explorer_folder);
 		explorer_folder_txt = "[invalid]";
+	}
+	else
+	{
+		explorer_folder_txt = m_settings.explorer_folder.str();
 	}
 	std::strncpy(
 	  m_explorer_folder_buffer.data(), explorer_folder_txt.data(), m_explorer_folder_buffer.size());
@@ -258,12 +264,18 @@ void SettingsEditor::revertSettingsInputs() noexcept
 
 	m_musics_sources_buffers.clear();
 	m_musics_sources_buffers.reserve(m_settings.music_sources.size());
-	for(const std::filesystem::path& path: m_settings.music_sources)
+	for(const utf8_path& path: m_settings.music_sources)
 	{
-		std::string path_txt;
-		if(!path_to_generic_utf8_string(path, path_txt))
+		std::string_view path_txt;
+		if(!path.valid())
 		{
+			m_logger->warn("Settings path contain invalid utf8 characters: {}",
+			               m_settings.explorer_folder);
 			path_txt = "[invalid]";
+		}
+		else
+		{
+			path_txt = path.str();
 		}
 		m_musics_sources_buffers.emplace_back();
 		auto& path_buffer = m_musics_sources_buffers.back();
@@ -274,27 +286,25 @@ void SettingsEditor::revertSettingsInputs() noexcept
 
 bool SettingsEditor::applySettingsInputs() noexcept
 {
-	std::string explorer_folder_txt(m_explorer_folder_buffer.data());
-	std::filesystem::path explorer_folder;
-	if(!utf8_string_to_path(explorer_folder_txt, explorer_folder))
+	utf8_path explorer_folder = m_explorer_folder_buffer.data();
+	if(!explorer_folder.valid())
 	{
 		std::stringstream tmp;
 		tmp << "Explorer folder path contain invalid UTF8 characters:\n";
-		tmp << explorer_folder_txt;
+		tmp << m_explorer_folder_buffer.data();
 		m_error_message = tmp.str();
 		return false;
 	}
 
-	std::vector<std::filesystem::path> music_sources;
+	std::vector<utf8_path> music_sources;
 	for(const auto& buffer: m_musics_sources_buffers)
 	{
-		std::string music_source_txt(buffer.data());
-		std::filesystem::path music_source;
-		if(!utf8_string_to_path(music_source_txt, music_source))
+		utf8_path music_source = buffer.data();
+		if(!music_source.valid())
 		{
 			std::stringstream tmp;
 			tmp << "Music source path contain invalid UTF8 characters:\n";
-			tmp << music_source_txt;
+			tmp << buffer.data();
 			m_error_message = tmp.str();
 			return false;
 		}

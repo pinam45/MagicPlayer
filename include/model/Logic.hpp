@@ -10,6 +10,7 @@
 
 #include "model/Messages.hpp"
 #include "data/Database.hpp"
+#include "utils/path_utils.hpp"
 
 #include <SFML/Audio/Music.hpp>
 #include <spdlog/logger.h>
@@ -29,16 +30,20 @@ public:
 	void run();
 
 private:
+	// input checked
 	template<typename Message>
 	void handleMessage(Message& message) = delete;
 
-	void loadFile(std::filesystem::path path);
+	//input not checked
+	void loadFile(const utf8_path& path);
 
-	void sendFolderContent(std::filesystem::path path);
+	void sendFolderContent(const std::filesystem::path& path);
+
+	void async_sendFolderContent(const std::filesystem::path& path);
 
 	void async_loadSettings();
 
-	void async_generateDatabase(std::vector<std::filesystem::path> music_sources);
+	void async_generateDatabase(std::vector<utf8_path> music_sources);
 
 	Msg::Com m_com;
 	bool m_end;

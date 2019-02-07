@@ -8,7 +8,7 @@
 #include "model/Messages.hpp"
 #include "utils/log.hpp"
 
-Msg::In::Open::Open(std::filesystem::path path_): path(std::move(path_))
+Msg::In::Open::Open(utf8_path path_): path(std::move(path_))
 {
 }
 
@@ -38,14 +38,12 @@ Msg::Out::MusicInfo::MusicInfo(bool valid_, float durationSeconds_)
 {
 }
 
-Msg::Out::FolderContent::FolderContent(std::filesystem::path path_,
-                                       const std::vector<PathInfo>& content_)
+Msg::Out::FolderContent::FolderContent(utf8_path path_, const std::vector<PathInfo>& content_)
   : path(std::move(path_)), content(content_)
 {
 }
 
-Msg::Out::FolderContent::FolderContent(std::filesystem::path path_,
-                                       std::vector<PathInfo>&& content_)
+Msg::Out::FolderContent::FolderContent(utf8_path path_, std::vector<PathInfo>&& content_)
   : path(std::move(path_)), content(std::move(content_))
 {
 }

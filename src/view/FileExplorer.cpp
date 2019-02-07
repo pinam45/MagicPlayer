@@ -13,6 +13,7 @@
 #include <IconsFontAwesome5.h>
 
 #include <sstream>
+#include <filesystem>
 
 FileExplorer::FileExplorer(std::string name, Msg::Sender sender)
   : m_sender(sender)
@@ -25,7 +26,7 @@ FileExplorer::FileExplorer(std::string name, Msg::Sender sender)
   , m_sub_paths()
   , m_displayable_split_paths(0)
   , m_last_available_width(0.0f)
-  , m_text_field_focus_state(0)
+  , m_text_field_focus_state(focus_state::NOT_FOCUSED)
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
 {
 }
@@ -39,7 +40,7 @@ void FileExplorer::show()
 	ImGui::Begin(m_name.c_str()); // Explorer
 
 	// Display navigation buttons list
-	if(m_text_field_focus_state == 0)
+	if(m_text_field_focus_state == focus_state::NOT_FOCUSED)
 	{
 		// Compute displayable split paths number
 		const float available_width = ImGui::GetWindowContentRegionMax().x * 3 / 4;
@@ -99,56 +100,48 @@ void FileExplorer::show()
 	// ImGui::InputText content can't be changed while edited
 	// So we change the "dummy user path" to the real "user path" on focus gain, in 3 steps / states
 	ImGui::PushItemWidth(-1);
-	if(m_text_field_focus_state == 2)
+	if(m_text_field_focus_state == focus_state::FOCUSED)
 	{
 		if(ImGui::InputText("##user path",
 		                    m_user_path.data(),
 		                    m_user_path.size(),
 		                    ImGuiInputTextFlags_EnterReturnsTrue))
 		{
-			std::filesystem::path file_path;
-			if(utf8_string_to_path(m_user_path.data(), file_path))
+			utf8_path path = m_user_path.data();
+			if(!path.valid())
 			{
-				m_logger->info("Request to open {}", file_path);
-				m_sender.sendInMessage<Msg::In::Open>(std::move(file_path));
+				m_logger->warn("Inputted path contains invalid utf8 characters: {}", path);
 			}
 			else
 			{
-				m_logger->warn("Inputed path contain invalid utf8 characters: {}",
-				               invalid_utf8_path_representation(m_user_path.data()));
+				m_logger->info("Request to open {}", path);
+				m_sender.sendInMessage<Msg::In::Open>(std::move(path));
 			}
 		}
 		if(!ImGui::IsItemActive())
 		{
-			m_text_field_focus_state = 0;
+			m_text_field_focus_state = focus_state::NOT_FOCUSED;
 			m_user_path[0] = '\0';
 		}
 	}
-	else if(m_text_field_focus_state == 1)
+	else if(m_text_field_focus_state == focus_state::FOCUS_REQUESTED)
 	{
-		std::string path;
-		if(!path_to_generic_utf8_string(m_path, path))
-		{
-			path = path_to_generic_utf8_string(m_path);
-			m_logger->warn("Current path contain invalid utf8 characters: {}",
-			               invalid_utf8_path_representation(m_user_path.data()));
-		}
-		std::strncpy(m_user_path.data(), path.data(), m_user_path.size());
-		m_user_path[std::max(path.size(), m_user_path.size() - 1)] = '\0';
+		std::strncpy(m_user_path.data(), m_path.str().data(), m_user_path.size());
+		m_user_path[std::max(m_path.str().size(), m_user_path.size() - 1)] = '\0';
 
 		ImGui::SetKeyboardFocusHere();
 		ImGui::InputText("##user path",
 		                 m_user_path.data(),
 		                 m_user_path.size(),
 		                 ImGuiInputTextFlags_EnterReturnsTrue);
-		++m_text_field_focus_state;
+		m_text_field_focus_state = focus_state::FOCUSED;
 	}
-	else if(m_text_field_focus_state == 0)
+	else if(m_text_field_focus_state == focus_state::NOT_FOCUSED)
 	{
 		ImGui::InputText("##dummy user path", m_user_path.data(), m_user_path.size());
-		if(m_text_field_focus_state == 0 && ImGui::IsItemActive())
+		if(ImGui::IsItemActive())
 		{
-			++m_text_field_focus_state;
+			m_text_field_focus_state = focus_state::FOCUS_REQUESTED;
 		}
 	}
 	ImGui::PopItemWidth();
@@ -180,27 +173,24 @@ void FileExplorer::show()
 void FileExplorer::processMessage(Msg::Out::FolderContent& message)
 {
 	std::error_code error;
-	std::filesystem::path path = std::filesystem::canonical(message.path, error);
+	utf8_path path = std::filesystem::canonical(message.path.path(), error);
 	if(error)
 	{
 		SPDLOG_DEBUG(m_logger, "std::filesystem::canonical failed: {}", error.message());
 		m_logger->warn("Failed to get canonical path of folder {}", path);
 		return;
 	}
-
-	std::string path_str;
-	if(!path_to_generic_utf8_string(path, path_str))
+	if(!path.valid())
 	{
-		m_logger->warn("Received content of folder with invalid utf8 path: {}",
-		               invalid_utf8_path_representation(path));
+		m_logger->warn("Received content of folder with invalid utf8 path: {}", path);
 		return;
 	}
 
 	// Generate sub paths
-	std::vector<std::tuple<std::string, std::filesystem::path>> sub_paths;
+	std::vector<std::tuple<std::string, utf8_path>> sub_paths;
 	std::string sub_path;
 	std::string path_part;
-	std::stringstream path_stream(path_str);
+	std::stringstream path_stream(path.str_cref());
 	while(std::getline(path_stream, path_part, '/'))
 	{
 		if(path_part.empty())
@@ -214,7 +204,7 @@ void FileExplorer::processMessage(Msg::Out::FolderContent& message)
 			sub_path.append(path_part);
 			sub_path.append("/");
 		}
-		sub_paths.emplace_back(path_part, utf8_string_to_path(sub_path));
+		sub_paths.emplace_back(path_part, utf8_path(std::string_view(sub_path)));
 	}
 
 	if(!sub_paths.empty())
@@ -233,7 +223,7 @@ void FileExplorer::processMessage(Msg::Out::FolderContent& message)
 
 	m_displayable_split_paths = m_sub_paths.size();
 	m_last_available_width = 0.0f;
-	m_text_field_focus_state = 0;
+	m_text_field_focus_state = focus_state::NOT_FOCUSED;
 
 	// Generate formatted content list
 	m_formatted_content.clear();

@@ -33,12 +33,12 @@ std::ostream& data::operator<<(std::ostream& os, const Settings& settings)
 	return os;
 }
 
-bool data::saveSettings(const data::Settings& settings,
+bool data::saveSettings(data::Settings& settings,
                         const std::shared_ptr<spdlog::logger>& logger) noexcept
 {
 	nlohmann::json settings_json;
 	std::error_code error;
-	std::filesystem::path path = std::filesystem::canonical(settings.explorer_folder, error);
+	utf8_path path = std::filesystem::canonical(settings.explorer_folder.path(), error);
 	if(error)
 	{
 		SPDLOG_DEBUG(logger, "std::filesystem::canonical failed: {}", error.message());
@@ -46,22 +46,21 @@ bool data::saveSettings(const data::Settings& settings,
 		             settings.explorer_folder);
 		path = settings.explorer_folder;
 	}
-	std::string explorer_path_str;
-	if(!path_to_generic_utf8_string(path, explorer_path_str))
+	if(!path.valid())
 	{
-		logger->warn("Explorer folder have an invalid utf8 path and can't be saved: {}",
-		             invalid_utf8_path_representation(path));
+		logger->warn("Explorer folder have an invalid utf8 path and can't be saved: {}", path);
 	}
 	else
 	{
-		settings_json["explorer_folder"] = std::move(explorer_path_str);
+		settings_json["explorer_folder"] = path.str();
+		settings.explorer_folder = std::move(path); // apply canonical to settings in memory
 	}
 
 	std::vector<std::string> music_sources_str;
 	music_sources_str.reserve(settings.music_sources.size());
-	for(const std::filesystem::path& music_source: settings.music_sources)
+	for(utf8_path& music_source: settings.music_sources)
 	{
-		path = std::filesystem::canonical(music_source, error);
+		path = std::filesystem::canonical(music_source.path(), error);
 		if(error)
 		{
 			SPDLOG_DEBUG(logger, "std::filesystem::canonical failed: {}", error.message());
@@ -70,15 +69,14 @@ bool data::saveSettings(const data::Settings& settings,
 			  music_source);
 			path = music_source;
 		}
-		std::string path_str;
-		if(!path_to_generic_utf8_string(path, path_str))
+		if(!path.valid())
 		{
-			logger->warn("Music source have an invalid utf8 path and can't be saved: {}",
-			             invalid_utf8_path_representation(path));
+			logger->warn("Music source have an invalid utf8 path and can't be saved: {}", path);
 		}
 		else
 		{
-			music_sources_str.push_back(std::move(path_str));
+			music_sources_str.emplace_back(path.str());
+			music_source = std::move(path); // apply canonical to settings in memory
 		}
 	}
 	settings_json["music_sources"] = std::move(music_sources_str);
@@ -87,7 +85,7 @@ bool data::saveSettings(const data::Settings& settings,
 	if(!file_stream)
 	{
 		SPDLOG_DEBUG(logger, "Invalid std::ofstream constructed with: {}", SETTINGS_FILE_PATH);
-		logger->warn("Failed to save settings", path);
+		logger->warn("Failed to save settings");
 		return false;
 	}
 
@@ -98,9 +96,8 @@ bool data::saveSettings(const data::Settings& settings,
 
 data::Settings data::loadSettings(const std::shared_ptr<spdlog::logger>& logger) noexcept
 {
+	// Load json
 	data::Settings settings;
-	settings.explorer_folder = DEFAULT_EXPLORER_FOLDER;
-
 	nlohmann::json settings_json;
 	std::ifstream file_stream(SETTINGS_FILE_PATH);
 	if(!file_stream)
@@ -116,6 +113,9 @@ data::Settings data::loadSettings(const std::shared_ptr<spdlog::logger>& logger)
 		return settings;
 	}
 
+	// Load explorer folder
+	utf8_path explorer_folder;
+	bool loaded_explorer_folder = false;
 	nlohmann::json::iterator it = settings_json.find("explorer_folder");
 	if(it == settings_json.end())
 	{
@@ -130,19 +130,37 @@ data::Settings data::loadSettings(const std::shared_ptr<spdlog::logger>& logger)
 		}
 		else
 		{
-			std::string path_str = it->get<std::string>();
-			std::filesystem::path path;
-			if(!utf8_string_to_path(path_str, path))
+			settings.explorer_folder = it->get<std::string>();
+			if(!settings.explorer_folder.valid())
 			{
 				logger->warn(
-				  "Explorer folder loaded from saved settings have an invalid utf8 path: {}, default path will be used",
-				  path_str);
+				  "Explorer folder loaded from saved settings contains invalid utf8 characters: {}, default path will be used",
+				  settings.explorer_folder);
 			}
 			else
 			{
-				SPDLOG_DEBUG(logger, "Loaded explorer folder from saved settings: {}", path);
-				settings.explorer_folder = std::move(path);
+				SPDLOG_DEBUG(logger,
+				             "Loaded explorer folder from saved settings: {}",
+				             settings.explorer_folder);
+				loaded_explorer_folder = true;
 			}
+		}
+	}
+	if(!loaded_explorer_folder)
+	{
+		std::error_code error;
+		settings.explorer_folder = std::filesystem::canonical(DEFAULT_EXPLORER_FOLDER, error);
+		if(error)
+		{
+			SPDLOG_DEBUG(logger, "std::filesystem::canonical failed: {}", error.message());
+			logger->warn("Failed to get canonical path of default explorer folder {}",
+			             DEFAULT_EXPLORER_FOLDER);
+			settings.explorer_folder = DEFAULT_EXPLORER_FOLDER;
+		}
+		if(!settings.explorer_folder.valid())
+		{
+			logger->warn("Default explorer folder contains invalid utf8 characters: {}",
+			             settings.explorer_folder);
 		}
 	}
 
@@ -163,13 +181,12 @@ data::Settings data::loadSettings(const std::shared_ptr<spdlog::logger>& logger)
 				}
 				else
 				{
-					std::string path_str = source.get<std::string>();
-					std::filesystem::path path;
-					if(!utf8_string_to_path(path_str, path))
+					utf8_path path = source.get<std::string>();
+					if(!path.valid())
 					{
 						logger->warn(
 						  "Saved settings contains a music source with an invalid utf8 path: {}, the source will be ignored",
-						  path_str);
+						  path);
 					}
 					else
 					{

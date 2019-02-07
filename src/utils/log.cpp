@@ -18,7 +18,7 @@
 #include <iostream>
 
 const std::shared_ptr<spdlog::logger> NULL_LOGGER =
-	std::make_shared<spdlog::logger>("null", std::make_shared<spdlog::sinks::null_sink_mt>());
+  std::make_shared<spdlog::logger>("null", std::make_shared<spdlog::sinks::null_sink_mt>());
 
 const std::shared_ptr<store_sink_mt> STORED_LOGS = std::make_shared<store_sink_mt>();
 

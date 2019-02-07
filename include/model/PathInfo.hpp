@@ -8,12 +8,12 @@
 #ifndef MAGICPLAYER_PATHINFO_HPP
 #define MAGICPLAYER_PATHINFO_HPP
 
-#include <filesystem>
+#include "utils/path_utils.hpp"
 
 // Path wrapper with information needed by GUI already computed
 struct PathInfo final
 {
-	std::filesystem::path path;
+	utf8_path path;
 	bool is_folder;
 	std::string file_name;
 	std::uintmax_t file_size;

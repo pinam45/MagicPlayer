@@ -80,15 +80,20 @@ data::DataManager::DataManager(std::shared_ptr<spdlog::logger> logger) noexcept
 }
 
 std::shared_ptr<const data::Database> data::DataManager::generateDatabase(
-  const std::vector<std::filesystem::path>& sources)
+  const std::vector<utf8_path>& sources)
 {
 	// no std::make_shared: friend class with private constructor
 	std::shared_ptr<Database> database(new Database());
 
-	for(const std::filesystem::path& path: sources)
+	for(const utf8_path& path: sources)
 	{
+		if(!path.valid())
+		{
+			m_logger->warn("Music source folder contains invalid utf8 characters: {}", path);
+			continue;
+		}
 		std::error_code error;
-		if(!std::filesystem::exists(path, error))
+		if(!std::filesystem::exists(path.path(), error))
 		{
 			if(error)
 			{
@@ -101,7 +106,7 @@ std::shared_ptr<const data::Database> data::DataManager::generateDatabase(
 			}
 			continue;
 		}
-		if(!std::filesystem::is_directory(path, error))
+		if(!std::filesystem::is_directory(path.path(), error))
 		{
 			if(error)
 			{
@@ -114,7 +119,7 @@ std::shared_ptr<const data::Database> data::DataManager::generateDatabase(
 			}
 			continue;
 		}
-		if(!loadMusicFromFolder(path, database))
+		if(!loadMusicFromFolder(path.path(), database))
 		{
 			m_logger->warn("Incomplete music loading from: {}", path);
 		}
@@ -139,7 +144,7 @@ bool data::DataManager::saveDatabase([
 	return false;
 }
 
-bool data::DataManager::loadMusicFromFolder(std::filesystem::path folder_path,
+bool data::DataManager::loadMusicFromFolder(const std::filesystem::path& folder_path,
                                             std::shared_ptr<data::Database>& database)
 {
 	std::queue<std::filesystem::path> folders;
@@ -200,7 +205,7 @@ bool data::DataManager::loadMusicFromFolder(std::filesystem::path folder_path,
 	return load_success;
 }
 
-bool data::DataManager::loadMusicFromFile(std::filesystem::path file_path,
+bool data::DataManager::loadMusicFromFile(const std::filesystem::path& file_path,
                                           std::shared_ptr<data::Database>& database,
                                           Cache& cache)
 {

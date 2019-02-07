@@ -8,9 +8,10 @@
 #ifndef MAGICPLAYER_MUSIC_HPP
 #define MAGICPLAYER_MUSIC_HPP
 
+#include "utils/path_utils.hpp"
+
 #include <string>
 #include <chrono>
-#include <filesystem>
 #include <cstdint>
 
 namespace data
@@ -26,7 +27,7 @@ namespace data
 		std::string title;
 		std::chrono::duration<int> length;
 
-		std::filesystem::path path;
+		utf8_path path;
 
 		Music(const Music&) = delete;
 		Music& operator=(const Music&) = delete;
@@ -42,7 +43,7 @@ namespace data
 		Music(int track,
 		      std::string title,
 		      std::chrono::duration<int> length,
-		      std::filesystem::path path) noexcept;
+		      utf8_path path) noexcept;
 	};
 } // namespace data
 
