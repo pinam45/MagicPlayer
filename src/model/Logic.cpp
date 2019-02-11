@@ -169,7 +169,11 @@ void Logic::handleMessage(Msg::In::Settings& message)
 	{
 		data::saveSettings(message.settings, m_logger);
 	}
-	//TODO: generate database
+
+	if(!data::equivalent_sources(message.settings.music_sources, m_settings.music_sources))
+	{
+		async_generateDatabase(message.settings.music_sources);
+	}
 
 	m_settings = std::move(message.settings);
 	m_com.sendOutMessage<Msg::Out::Settings>(m_settings);
@@ -350,9 +354,8 @@ void Logic::async_loadSettings()
 	auto process = [this]() noexcept
 	{
 		data::Settings settings = data::loadSettings(m_logger);
-		m_com.sendInMessage<Msg::In::Settings>(settings, false);
 		m_com.sendInMessage<Msg::In::Open>(settings.explorer_folder);
-		m_com.sendOutMessage<Msg::Out::Settings>(std::move(settings));
+		m_com.sendInMessage<Msg::In::Settings>(std::move(settings), false);
 
 		m_com.sendInMessage<Msg::In::InnerTaskEnded>();
 	};
@@ -364,6 +367,7 @@ void Logic::async_generateDatabase(std::vector<utf8_path> music_sources_)
 	auto process = [this](std::vector<utf8_path> music_sources) noexcept
 	{
 		//TODO
+		m_logger->error("Database generation not implemented yet");
 
 		m_com.sendInMessage<Msg::In::InnerTaskEnded>();
 	};

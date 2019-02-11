@@ -201,3 +201,60 @@ data::Settings data::loadSettings(const std::shared_ptr<spdlog::logger>& logger)
 	logger->info("Loaded settings");
 	return settings;
 }
+
+bool data::equivalent_sources(const std::vector<utf8_path>& sources_a,
+                              const std::vector<utf8_path>& sources_b,
+                              const std::shared_ptr<spdlog::logger>& logger) noexcept
+{
+	std::vector<bool> b_matched;
+	b_matched.resize(sources_b.size());
+
+	std::error_code error;
+	for(size_t i = 0; i < sources_b.size(); ++i)
+	{
+		if(!std::filesystem::exists(sources_b[i].path(), error))
+		{
+			b_matched[i] = true;
+		}
+	}
+
+	for(const utf8_path& path: sources_a)
+	{
+		if(!std::filesystem::exists(path.path(), error))
+		{
+			if(error)
+			{
+				SPDLOG_DEBUG(logger, "std::filesystem::exists failed: {}", error.message());
+				logger->warn("Check if folder exist failed for {}", path);
+			}
+			else
+			{
+				logger->warn("Music source folder doesn't exist: {}", path);
+			}
+			continue;
+		}
+
+		bool matched_b = false;
+		for(size_t i = 0; i < sources_b.size(); ++i)
+		{
+			if(std::filesystem::equivalent(path.path(), sources_b[i].path(), error))
+			{
+				b_matched[i] = true;
+				matched_b = true;
+			}
+			if(error)
+			{
+				SPDLOG_DEBUG(logger, "std::filesystem::equivalent failed: {}", error.message());
+				logger->warn("Path comparison failed for {} and {}", path, sources_b[i]);
+			}
+		}
+		if(!matched_b)
+		{
+			return false;
+		}
+	}
+
+	// std::identity is C++20...
+	return std::all_of(
+	  std::cbegin(b_matched), std::cend(b_matched), [](bool matched) { return matched; });
+}

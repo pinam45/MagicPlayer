@@ -29,6 +29,10 @@ namespace data
 	                  const std::shared_ptr<spdlog::logger>& logger = NULL_LOGGER) noexcept;
 
 	Settings loadSettings(const std::shared_ptr<spdlog::logger>& logger = NULL_LOGGER) noexcept;
+
+	bool equivalent_sources(const std::vector<utf8_path>& sources_a,
+	                        const std::vector<utf8_path>& sources_b,
+	                        const std::shared_ptr<spdlog::logger>& logger = NULL_LOGGER) noexcept;
 } // namespace data
 
 #endif //MAGICPLAYER_SETTINGS_HPP
