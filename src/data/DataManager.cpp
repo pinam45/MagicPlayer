@@ -167,6 +167,7 @@ bool data::DataManager::loadMusicFromFolder(const std::filesystem::path& folder_
 	{
 		std::filesystem::path folder = folders.front();
 		folders.pop();
+		SPDLOG_TRACE(m_logger, "Database generation: processing folder {}", folder);
 
 		std::error_code error;
 		std::filesystem::directory_iterator directory_iterator(folder, error);
@@ -224,6 +225,8 @@ bool data::DataManager::loadMusicFromFile(const std::filesystem::path& file_path
 	{
 		return true;
 	}
+	SPDLOG_TRACE(m_logger, "Database generation: processing file {}", file_path);
+
 	TagLib::FileRef fileref(file_path.generic_string().c_str());
 	if(fileref.isNull())
 	{
