@@ -37,7 +37,8 @@ namespace
 
 	void TagLibLogger::printMessage(const TagLib::String& msg)
 	{
-		std::string_view view(msg.to8Bit(true));
+		std::string str(msg.to8Bit(true));
+		std::string_view view(str);
 		view.remove_suffix(1); // remove trailing '\n'
 		SPDLOG_DEBUG(logger, "{}", view);
 	}
