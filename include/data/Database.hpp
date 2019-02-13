@@ -12,6 +12,7 @@
 #include "data/Artist.hpp"
 
 #include <cstdint>
+#include <chrono>
 
 namespace data
 {
@@ -19,6 +20,7 @@ namespace data
 	{
 		std::uint64_t id;
 		std::vector<utf8_path> sources;
+		std::chrono::system_clock::time_point generation_date;
 
 		std::vector<Artist> artists;
 

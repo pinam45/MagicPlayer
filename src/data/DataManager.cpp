@@ -84,6 +84,7 @@ std::shared_ptr<const data::Database> data::DataManager::generateDatabase(
 {
 	// no std::make_shared: friend class with private constructor
 	std::shared_ptr<Database> database(new Database());
+	m_logger->info("Started database generation");
 
 	for(const utf8_path& path: sources)
 	{
@@ -128,19 +129,29 @@ std::shared_ptr<const data::Database> data::DataManager::generateDatabase(
 
 	sortDatabase(database);
 	attributeIds(database);
+
+	database->generation_date = std::chrono::system_clock::now();
+	m_logger->info("Finished database generation");
 	return database;
 }
 
 std::shared_ptr<const data::Database> data::DataManager::loadDatabase()
 {
-	assert(false); //TODO
-	return std::shared_ptr<data::Database>();
+	//TODO
+	m_logger->error("Not implemented: data::DataManager::loadDatabase()");
+
+	// no std::make_shared: friend class with private constructor
+	std::shared_ptr<Database> database(new Database());
+	database->id = 0;
+	database->generation_date = std::chrono::system_clock::now();
+	return database;
 }
 
 bool data::DataManager::saveDatabase([
   [maybe_unused]] std::shared_ptr<const data::Database>& database)
 {
-	assert(false); //TODO
+	//TODO
+	m_logger->error("Not implemented: data::DataManager::saveDatabase()");
 	return false;
 }
 
