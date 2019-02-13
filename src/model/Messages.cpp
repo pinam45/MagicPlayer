@@ -29,6 +29,10 @@ Msg::In::Settings::Settings(data::Settings settings_, bool save_)
 {
 }
 
+Msg::In::RequestDatabase::RequestDatabase(bool generate_new_): generate_new(generate_new_)
+{
+}
+
 Msg::Out::MusicOffset::MusicOffset(float seconds_): seconds(seconds_)
 {
 }
@@ -115,6 +119,13 @@ std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::
 	return os << "Settings{"
 	          << "settings: " << m.settings << ","
 	          << "save: " << m.save << "}";
+}
+
+std::ostream& Msg::In::operator<<(std::ostream& os, const RequestDatabase& m)
+{
+	ostream_config_guard guard(os, std::boolalpha);
+	return os << "RequestDatabase{"
+	          << "generate_new: " << m.generate_new << "}";
 }
 
 std::ostream& Msg::In::operator<<(std::ostream& os,

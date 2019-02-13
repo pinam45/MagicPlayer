@@ -90,6 +90,14 @@ namespace Msg
 		};
 		std::ostream& operator<<(std::ostream& os, const Settings& m);
 
+		struct RequestDatabase
+		{
+			bool generate_new;
+
+			explicit RequestDatabase(bool generate_new = false);
+		};
+		std::ostream& operator<<(std::ostream& os, const RequestDatabase& m);
+
 		struct InnerTaskEnded
 		{
 		};
