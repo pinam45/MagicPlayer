@@ -1,3 +1,10 @@
+//
+// Copyright (c) 2018 Maxime Pinard
+//
+// Distributed under the MIT license
+// See accompanying file LICENSE or copy at
+// https://opensource.org/licenses/MIT
+//
 #include "utils/path_utils.hpp"
 
 #include <utf8.h>
