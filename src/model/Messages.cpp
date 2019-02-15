@@ -113,7 +113,7 @@ std::ostream& Msg::In::operator<<(std::ostream& os,
 	return os << "RequestMusicOffset{}";
 }
 
-std::ostream& Msg::In::operator<<(std::ostream& os, [[maybe_unused]] const Msg::In::Settings& m)
+std::ostream& Msg::In::operator<<(std::ostream& os, const Msg::In::Settings& m)
 {
 	ostream_config_guard guard(os, std::boolalpha);
 	return os << "Settings{"
@@ -176,7 +176,7 @@ std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::Database& m
 	return os;
 }
 
-std::ostream& Msg::Out::operator<<(std::ostream& os, [[maybe_unused]] const Msg::Out::Settings& m)
+std::ostream& Msg::Out::operator<<(std::ostream& os, const Msg::Out::Settings& m)
 {
 	return os << "Settings{"
 	          << "settings: " << m.settings << "}";
