@@ -160,9 +160,14 @@ namespace Msg
 		                     In::MusicOffset,
 		                     In::RequestMusicOffset,
 		                     In::Settings,
+		                     In::RequestDatabase,
 		                     In::InnerTaskEnded>
 		  InMessage;
-		typedef std::variant<Out::MusicOffset, Out::MusicInfo, Out::FolderContent, Out::Settings>
+		typedef std::variant<Out::MusicOffset,
+		                     Out::MusicInfo,
+		                     Out::FolderContent,
+		                     Out::Database,
+		                     Out::Settings>
 		  OutMessage;
 		shared_queue<InMessage> in;
 		shared_queue<OutMessage, true> out;

@@ -19,10 +19,12 @@ namespace
 	constexpr int DEFAULT_WIDTH = 600;
 	constexpr int DEFAULT_HEIGHT = 450;
 	constexpr float BUTTONS_SPACING_FACTOR = 2.5f;
-	constexpr const char* REVERT_BUTTON_TXT = "Revert";
-	constexpr const char* SAVE_BUTTON_TXT = "Save";
+	constexpr const char* LEFT_PANEL_TITLE_TXT = ICON_FA_COGS " Categories";
+	constexpr const char* REVERT_BUTTON_TXT = ICON_FA_UNDO " Revert";
+	constexpr const char* SAVE_BUTTON_TXT = ICON_FA_SAVE " Save";
 	constexpr const char* DELETE_MUSIC_SOURCE_BUTTON_TXT = ICON_FA_TRASH_ALT;
 	constexpr const char* ADD_MUSIC_SOURCE_BUTTON_TXT = ICON_FA_FOLDER_PLUS;
+	constexpr const char* DEFAULT_GENERATION_DATE_TXT = "undefined";
 	const ImVec2 ERROR_POPUP_SIZE = {375.f, -1.f};
 } // namespace
 
@@ -32,6 +34,7 @@ SettingsEditor::SettingsEditor(std::string name, Msg::Sender sender)
   , m_explorer_folder_buffer()
   , m_musics_sources_buffers()
   , m_settings()
+  , m_database_info()
   , m_selectedPanel(SettingsPanels::FILES_EXPLORER)
   , m_error_message("")
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
@@ -113,16 +116,30 @@ void SettingsEditor::processMessage(Msg::Out::Settings& message)
 	revertSettingsInputs();
 }
 
-std::string_view SettingsEditor::SettingsPanelsTxt(
-  SettingsEditor::SettingsPanels settingsPanels) const noexcept
+void SettingsEditor::processMessage(Msg::Out::Database& message)
 {
-	switch(settingsPanels)
+	assert(message.database != nullptr);
+	std::time_t time_c = std::chrono::system_clock::to_time_t(message.database->generation_date);
+	std::stringstream generation_date;
+	generation_date << std::put_time(std::localtime(&time_c), "%F %T");
+	m_database_info.generation_date = generation_date.str();
+	m_database_info.sources = message.database->sources;
+	m_database_info.artists = static_cast<int>(message.database->artists.size());
+	m_database_info.albums = 0;
+	m_database_info.musics = 0;
+	for(const data::Artist& artist: message.database->artists)
 	{
-		case SettingsPanels::FILES_EXPLORER:
-			return "Files explorer";
-		case SettingsPanels::MUSICS_DATABASE:
-			return "Musics database";
+		m_database_info.albums += static_cast<int>(artist.albums.size());
+		for(const data::Album& album: artist.albums)
+		{
+			m_database_info.musics += static_cast<int>(album.musics.size());
+		}
 	}
+}
+
+SettingsEditor::DatabaseInfo::DatabaseInfo() noexcept
+  : generation_date(DEFAULT_GENERATION_DATE_TXT), sources(), artists(), albums(), musics()
+{
 }
 
 void SettingsEditor::showLeftPanel(const float panel_height) noexcept
@@ -131,15 +148,22 @@ void SettingsEditor::showLeftPanel(const float panel_height) noexcept
 	ImGui::BeginChild("##left panel", ImVec2(150, panel_height), true);
 	ImGui::PopStyleVar();
 	{
+		ImGui::TextUnformatted(LEFT_PANEL_TITLE_TXT);
+		ImGui::Separator();
 		if(ImGui::Selectable(SettingsPanelsTxt(SettingsPanels::FILES_EXPLORER).data(),
 		                     m_selectedPanel == SettingsPanels::FILES_EXPLORER))
 		{
 			m_selectedPanel = SettingsPanels::FILES_EXPLORER;
 		}
-		if(ImGui::Selectable(SettingsPanelsTxt(SettingsPanels::MUSICS_DATABASE).data(),
-		                     m_selectedPanel == SettingsPanels::MUSICS_DATABASE))
+		if(ImGui::Selectable(SettingsPanelsTxt(SettingsPanels::MUSICS_SOURCES).data(),
+		                     m_selectedPanel == SettingsPanels::MUSICS_SOURCES))
 		{
-			m_selectedPanel = SettingsPanels::MUSICS_DATABASE;
+			m_selectedPanel = SettingsPanels::MUSICS_SOURCES;
+		}
+		if(ImGui::Selectable(SettingsPanelsTxt(SettingsPanels::DATABASE).data(),
+		                     m_selectedPanel == SettingsPanels::DATABASE))
+		{
+			m_selectedPanel = SettingsPanels::DATABASE;
 		}
 	}
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
@@ -169,8 +193,11 @@ void SettingsEditor::showConfigOptions() noexcept
 		case SettingsPanels::FILES_EXPLORER:
 			showFileExplorerConfigOptions();
 			break;
-		case SettingsPanels::MUSICS_DATABASE:
-			showMusicsDatabaseConfigOptions();
+		case SettingsPanels::MUSICS_SOURCES:
+			showMusicsSourcesConfigOptions();
+			break;
+		case SettingsPanels::DATABASE:
+			showDatabaseConfigOptions();
 			break;
 	}
 }
@@ -187,7 +214,7 @@ void SettingsEditor::showFileExplorerConfigOptions() noexcept
 	}
 }
 
-void SettingsEditor::showMusicsDatabaseConfigOptions() noexcept
+void SettingsEditor::showMusicsSourcesConfigOptions() noexcept
 {
 	int to_delete = -1;
 	const ImGuiContext& g = *GImGui;
@@ -223,6 +250,36 @@ void SettingsEditor::showMusicsDatabaseConfigOptions() noexcept
 		auto it = m_musics_sources_buffers.begin();
 		std::advance(it, to_delete);
 		m_musics_sources_buffers.erase(it);
+	}
+}
+
+void SettingsEditor::showDatabaseConfigOptions() noexcept
+{
+	if(ImGui::TreeNodeEx(ICON_FA_CLOCK " Generation date", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::TextUnformatted(m_database_info.generation_date.c_str());
+		ImGui::TreePop();
+	}
+	if(ImGui::TreeNodeEx(ICON_FA_FOLDER " Sources used", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		for(const utf8_path& source: m_database_info.sources)
+		{
+			ImGui::TextUnformatted(source.str().data());
+		}
+		ImGui::TreePop();
+	}
+	if(ImGui::TreeNodeEx(ICON_FA_MUSIC " Content", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::Text("%d artists", m_database_info.artists);
+		ImGui::Text("%d albums", m_database_info.albums);
+		ImGui::Text("%d musics", m_database_info.musics);
+		ImGui::TreePop();
+	}
+
+	ImGui::Separator();
+	if(ImGui::Button(ICON_FA_DATABASE " Generate new database"))
+	{
+		m_sender.sendInMessage<Msg::In::RequestDatabase>(true);
 	}
 }
 
@@ -315,4 +372,18 @@ bool SettingsEditor::applySettingsInputs() noexcept
 	m_settings.music_sources = std::move(music_sources);
 
 	return true;
+}
+
+std::string_view SettingsEditor::SettingsPanelsTxt(
+  SettingsEditor::SettingsPanels settingsPanels) const noexcept
+{
+	switch(settingsPanels)
+	{
+		case SettingsPanels::FILES_EXPLORER:
+			return "Files explorer";
+		case SettingsPanels::MUSICS_SOURCES:
+			return "Musics sources";
+		case SettingsPanels::DATABASE:
+			return "Database";
+	}
 }

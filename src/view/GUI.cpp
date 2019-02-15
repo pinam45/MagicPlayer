@@ -64,6 +64,13 @@ void GUI::handleMessage(Msg::Out::FolderContent& message)
 }
 
 template<>
+void GUI::handleMessage(Msg::Out::Database& message)
+{
+	m_logger->info("Received database");
+	m_settingsEditor.processMessage(message);
+}
+
+template<>
 void GUI::handleMessage(Msg::Out::Settings& message)
 {
 	m_logger->info("Received settings");

@@ -28,7 +28,20 @@ public:
 
 	void processMessage(Msg::Out::Settings& message);
 
+	void processMessage(Msg::Out::Database& message);
+
 private:
+	struct DatabaseInfo
+	{
+		std::string generation_date;
+		std::vector<utf8_path> sources;
+		int artists;
+		int albums;
+		int musics;
+
+		DatabaseInfo() noexcept;
+	};
+
 	void showLeftPanel(float panel_height) noexcept;
 
 	void showRightPanel(float panel_height) noexcept;
@@ -37,7 +50,9 @@ private:
 
 	void showFileExplorerConfigOptions() noexcept;
 
-	void showMusicsDatabaseConfigOptions() noexcept;
+	void showMusicsSourcesConfigOptions() noexcept;
+
+	void showDatabaseConfigOptions() noexcept;
 
 	void showErrorPopupModal() noexcept;
 
@@ -48,7 +63,8 @@ private:
 	enum class SettingsPanels
 	{
 		FILES_EXPLORER,
-		MUSICS_DATABASE
+		MUSICS_SOURCES,
+		DATABASE
 	};
 	std::string_view SettingsPanelsTxt(SettingsPanels settingsPanels) const noexcept;
 
@@ -58,6 +74,7 @@ private:
 	std::array<char, 2048> m_explorer_folder_buffer;
 	std::vector<std::array<char, 2048>> m_musics_sources_buffers;
 	data::Settings m_settings;
+	DatabaseInfo m_database_info;
 	SettingsPanels m_selectedPanel;
 	std::string m_error_message;
 

@@ -227,7 +227,7 @@ bool data::DataManager::loadMusicFromFile(const std::filesystem::path& file_path
 	}
 	SPDLOG_TRACE(m_logger, "Database generation: processing file {}", file_path);
 
-	TagLib::FileRef fileref(file_path.generic_string().c_str());
+	TagLib::FileRef fileref(file_path.native().c_str());
 	if(fileref.isNull())
 	{
 		m_logger->warn("Failed to load file {}", file_path);

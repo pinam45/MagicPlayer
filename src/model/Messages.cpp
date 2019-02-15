@@ -55,6 +55,7 @@ Msg::Out::FolderContent::FolderContent(utf8_path path_, std::vector<PathInfo>&& 
 Msg::Out::Database::Database(std::shared_ptr<const data::Database> database_)
   : database(std::move(database_))
 {
+	assert(database != nullptr);
 }
 
 Msg::Out::Settings::Settings(data::Settings settings_): settings(std::move(settings_))

@@ -47,7 +47,8 @@ void FileExplorer::show()
 		   > std::numeric_limits<float>::epsilon())
 		{
 			m_last_available_width = available_width;
-			float used_width = ImGui::GetWindowPos().x + ImGui::CalcTextSize(ICON_FA_CHEVRON_RIGHT).x;
+			float used_width =
+			  ImGui::GetWindowPos().x + ImGui::CalcTextSize(ICON_FA_CHEVRON_RIGHT).x;
 			m_displayable_split_paths = 0;
 			for(auto it = m_sub_paths.rbegin(); it != m_sub_paths.rend(); ++it)
 			{

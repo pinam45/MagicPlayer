@@ -17,9 +17,15 @@
 
 #include <thread>
 #include <future>
+#include <utility>
 
 namespace
 {
+	template<typename T>
+	struct dependent_false : public std::false_type
+	{
+	};
+
 	std::once_flag SFML_inited;
 	void init_SFML()
 	{
@@ -170,13 +176,21 @@ void Logic::handleMessage(Msg::In::Settings& message)
 		data::saveSettings(message.settings, m_logger);
 	}
 
-	if(!data::equivalent_sources(message.settings.music_sources, m_settings.music_sources))
-	{
-		async_generateDatabase(message.settings.music_sources);
-	}
-
 	m_settings = std::move(message.settings);
 	m_com.sendOutMessage<Msg::Out::Settings>(m_settings);
+}
+
+template<>
+void Logic::handleMessage(Msg::In::RequestDatabase& message)
+{
+	if(message.generate_new)
+	{
+		async_generateDatabase(m_settings.music_sources);
+	}
+	else
+	{
+		m_com.sendOutMessage<Msg::Out::Database>(m_database);
+	}
 }
 
 template<>
@@ -184,24 +198,33 @@ void Logic::handleMessage([[maybe_unused]] Msg::In::InnerTaskEnded& message)
 {
 	auto it = std::find_if(m_pending_futures.begin(),
 	                       m_pending_futures.end(),
-	                       [](const std::future<void>& future) { return future.valid(); });
+	                       [](const auto& future) { return future.valid(); });
 	if(it == std::end(m_pending_futures))
 	{
 		m_logger->warn("Task ended message received but no valid future found");
 		return;
 	}
+
+	// Execute post-task
+	std::packaged_task<void()> post_task = it->get();
+	if(post_task.valid())
+	{
+		post_task();
+	}
+
 	m_pending_futures.erase(it);
 	SPDLOG_TRACE(m_logger, "Inner task ended: erased future");
 }
 
 Logic::Logic()
-  : m_com()
+  : m_logger(spdlog::get(LOGIC_LOGGER_NAME))
+  , m_com()
   , m_end(false)
   , m_music()
   , m_pending_futures()
   , m_settings()
+  , m_data_manager(m_logger)
   , m_database(nullptr)
-  , m_logger(spdlog::get(LOGIC_LOGGER_NAME))
 {
 	init_SFML();
 }
@@ -209,7 +232,7 @@ Logic::Logic()
 Logic::~Logic()
 {
 	SPDLOG_DEBUG(m_logger, "Start ending all background tasks");
-	for(const std::future<void>& future: m_pending_futures)
+	for(const auto& future: m_pending_futures)
 	{
 		SPDLOG_TRACE(m_logger, "Waiting on pending futures");
 		future.wait();
@@ -225,6 +248,8 @@ Msg::Com& Logic::getCom()
 void Logic::run()
 {
 	async_loadSettings();
+	async_loadDatabase();
+
 	while(!m_end)
 	{
 		Msg::Com::InMessage message_ = m_com.in.front();
@@ -340,36 +365,81 @@ void Logic::sendFolderContent(const std::filesystem::path& path)
 
 void Logic::async_sendFolderContent(const std::filesystem::path& path_)
 {
-	auto process = [this](const std::filesystem::path path) noexcept
-	{
-		sendFolderContent(path);
-
-		m_com.sendInMessage<Msg::In::InnerTaskEnded>();
-	};
-	m_pending_futures.push_back(std::async(std::launch::async, process, path_));
+	async_task(
+	  [this](const std::filesystem::path path) noexcept { sendFolderContent(path); }, path_);
 }
 
 void Logic::async_loadSettings()
 {
-	auto process = [this]() noexcept
-	{
+	async_task([this]() noexcept {
 		data::Settings settings = data::loadSettings(m_logger);
-		m_com.sendInMessage<Msg::In::Open>(settings.explorer_folder);
-		m_com.sendInMessage<Msg::In::Settings>(std::move(settings), false);
 
-		m_com.sendInMessage<Msg::In::InnerTaskEnded>();
-	};
-	m_pending_futures.push_back(std::async(std::launch::async, process));
+		return std::packaged_task<void()>([this, settings] {
+			m_settings = settings;
+			m_com.sendOutMessage<Msg::Out::Settings>(m_settings);
+			m_com.sendInMessage<Msg::In::Open>(settings.explorer_folder);
+		});
+	});
+}
+
+void Logic::async_loadDatabase()
+{
+	async_task([this]() noexcept {
+		std::shared_ptr<const data::Database> database = m_data_manager.loadDatabase();
+
+		return std::packaged_task<void()>([this, database] {
+			m_database = database;
+			m_com.sendOutMessage<Msg::Out::Database>(m_database);
+		});
+	});
 }
 
 void Logic::async_generateDatabase(std::vector<utf8_path> music_sources_)
 {
-	auto process = [this](std::vector<utf8_path> music_sources) noexcept
-	{
-		//TODO
-		m_logger->error("Database generation not implemented yet");
+	async_task(
+	  [this](std::vector<utf8_path> music_sources) noexcept {
+		  std::shared_ptr<const data::Database> database =
+		    m_data_manager.generateDatabase(music_sources);
 
-		m_com.sendInMessage<Msg::In::InnerTaskEnded>();
-	};
-	m_pending_futures.push_back(std::async(std::launch::async, process, std::move(music_sources_)));
+		  return std::packaged_task<void()>([this, database] {
+			  m_database = database;
+			  m_com.sendOutMessage<Msg::Out::Database>(m_database);
+		  });
+	  },
+	  std::move(music_sources_));
+}
+
+template<typename Lambda, typename... Parameters>
+void Logic::async_task(Lambda lambda, Parameters... parameters)
+{
+	if constexpr(std::is_same<typename std::invoke_result<Lambda, Parameters...>::type,
+	                          void>::value)
+	{
+		auto process = [this](Lambda lambda_,
+		                      Parameters... parameters_) noexcept->std::packaged_task<void()>
+		{
+			lambda_(std::forward<Parameters>(parameters_)...);
+			m_com.sendInMessage<Msg::In::InnerTaskEnded>();
+			return std::packaged_task<void()>();
+		};
+		m_pending_futures.push_back(
+		  std::async(std::launch::async, process, lambda, std::forward<Parameters>(parameters)...));
+	}
+	else if constexpr(std::is_same<typename std::invoke_result<Lambda, Parameters...>::type,
+	                               std::packaged_task<void()>>::value)
+	{
+		auto process = [this](Lambda lambda_,
+		                      Parameters... parameters_) noexcept->std::packaged_task<void()>
+		{
+			auto post_task = lambda_(std::forward<Parameters>(parameters_)...);
+			m_com.sendInMessage<Msg::In::InnerTaskEnded>();
+			return post_task;
+		};
+		m_pending_futures.push_back(
+		  std::async(std::launch::async, process, lambda, std::forward<Parameters>(parameters)...));
+	}
+	else
+	{
+		static_assert(dependent_false<Lambda>::value, "Invalid lambda return type");
+	}
 }
