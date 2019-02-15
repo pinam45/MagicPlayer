@@ -6,7 +6,6 @@
 // https://opensource.org/licenses/MIT
 //
 #include "view/FileExplorer.hpp"
-#include "view/imgui_helpers.hpp"
 #include "utils/log.hpp"
 
 #include <imgui.h>
@@ -48,11 +47,11 @@ void FileExplorer::show()
 		   > std::numeric_limits<float>::epsilon())
 		{
 			m_last_available_width = available_width;
-			float used_width = ImGui::GetWindowPos().x + compute_text_width(ICON_FA_CHEVRON_RIGHT);
+			float used_width = ImGui::GetWindowPos().x + ImGui::CalcTextSize(ICON_FA_CHEVRON_RIGHT).x;
 			m_displayable_split_paths = 0;
 			for(auto it = m_sub_paths.rbegin(); it != m_sub_paths.rend(); ++it)
 			{
-				used_width += compute_text_width(std::get<0>(*it).c_str());
+				used_width += ImGui::CalcTextSize(std::get<0>(*it).c_str()).x;
 				if(used_width > available_width)
 				{
 					break;
