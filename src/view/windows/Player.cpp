@@ -5,7 +5,7 @@
 // See accompanying file LICENSE or copy at
 // https://opensource.org/licenses/MIT
 //
-#include "view/Player.hpp"
+#include "view/windows/Player.hpp"
 #include "view/imgui_custom_widgets.hpp"
 #include "view/FontManager.hpp"
 #include "utils/log.hpp"

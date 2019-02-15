@@ -5,7 +5,7 @@
 // See accompanying file LICENSE or copy at
 // https://opensource.org/licenses/MIT
 //
-#include "view/LogViewer.hpp"
+#include "view/windows/LogViewer.hpp"
 #include "utils/log.hpp"
 
 #include <spdlog/spdlog.h>

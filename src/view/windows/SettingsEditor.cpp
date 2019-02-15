@@ -5,12 +5,11 @@
 // See accompanying file LICENSE or copy at
 // https://opensource.org/licenses/MIT
 //
-#include "view/SettingsEditor.hpp"
+#include "view/windows/SettingsEditor.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <IconsFontAwesome5.h>
-#include <view/SettingsEditor.hpp>
 
 #include <sstream>
 

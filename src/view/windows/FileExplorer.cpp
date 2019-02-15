@@ -5,7 +5,7 @@
 // See accompanying file LICENSE or copy at
 // https://opensource.org/licenses/MIT
 //
-#include "view/FileExplorer.hpp"
+#include "view/windows/FileExplorer.hpp"
 #include "utils/log.hpp"
 
 #include <imgui.h>

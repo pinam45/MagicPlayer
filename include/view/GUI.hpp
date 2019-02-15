@@ -10,10 +10,10 @@
 
 #include "model/Messages.hpp"
 #include "view/imgui_easy_theming.hpp"
-#include "view/FileExplorer.hpp"
-#include "view/Player.hpp"
-#include "view/LogViewer.hpp"
-#include "view/SettingsEditor.hpp"
+#include "view/windows/FileExplorer.hpp"
+#include "view/windows/Player.hpp"
+#include "view/windows/LogViewer.hpp"
+#include "view/windows/SettingsEditor.hpp"
 
 #include <imgui.h>
 #include <spdlog/logger.h>
