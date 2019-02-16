@@ -10,7 +10,7 @@
 
 #include "model/Messages.hpp"
 #include "view/imgui_easy_theming.hpp"
-#include "view/windows/FileExplorer.hpp"
+#include "view/windows/Explorer.hpp"
 #include "view/windows/Player.hpp"
 #include "view/windows/LogViewer.hpp"
 #include "view/windows/SettingsEditor.hpp"
@@ -49,7 +49,7 @@ private:
 	bool m_showSettingsEditor;
 	ImGui::ETheming::ColorTheme m_style;
 
-	FileExplorer m_file_explorer;
+	Explorer m_explorer;
 	Player m_player;
 	LogViewer m_log_viewer;
 	SettingsEditor m_settingsEditor;

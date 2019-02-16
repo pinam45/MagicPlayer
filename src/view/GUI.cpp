@@ -60,12 +60,13 @@ void GUI::handleMessage(Msg::Out::FolderContent& message)
 {
 	m_logger->info(
 	  "Received folder {} content: {} files/folders", message.path, message.content.size());
-	m_file_explorer.processMessage(message);
+	m_explorer.processMessage(message);
 }
 
 template<>
 void GUI::handleMessage(Msg::Out::Database& message)
 {
+	assert(message.database != nullptr);
 	m_logger->info("Received database");
 	m_settingsEditor.processMessage(message);
 }
@@ -83,7 +84,7 @@ GUI::GUI(Msg::Com& com_)
   , m_showLogViewerWindow(false)
   , m_showSettingsEditor(false)
   , m_style(ImGui::ETheming::ColorTheme::ArcDark)
-  , m_file_explorer(INNER_WINDOW_EXPLORER_NAME, Msg::Sender(m_com))
+  , m_explorer(INNER_WINDOW_EXPLORER_NAME, Msg::Sender(m_com))
   , m_player(INNER_WINDOW_PLAYER_NAME, Msg::Sender(m_com))
   , m_log_viewer(INNER_WINDOW_LOG_VIEWER_NAME)
   , m_settingsEditor(INNER_WINDOW_SETTINGS_EDITOR_NAME, Msg::Sender(m_com))
@@ -142,7 +143,7 @@ int GUI::run()
 void GUI::show()
 {
 	showMainDockspace();
-	m_file_explorer.show();
+	m_explorer.show();
 	m_player.show();
 
 	if(m_showThemeConfigWindow)
@@ -287,7 +288,7 @@ void GUI::loadInitialConfig()
 	// FIXME: load/save config from file
 	m_style = ImGui::ETheming::ColorTheme::ArcDark;
 
-	m_file_explorer.init();
+	m_explorer.init();
 	m_player.init();
 	m_log_viewer.init();
 	m_settingsEditor.init();

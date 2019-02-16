@@ -17,11 +17,11 @@
 class FileExplorer final
 {
 public:
-	FileExplorer(std::string name, Msg::Sender sender);
+	explicit FileExplorer(Msg::Sender sender);
 
 	void init();
 
-	void show();
+	void print();
 
 	void processMessage(Msg::Out::FolderContent& message);
 
@@ -35,7 +35,6 @@ private:
 
 	Msg::Sender m_sender;
 
-	std::string m_name;
 	std::array<char, 2018> m_user_path;
 	utf8_path m_path;
 	std::vector<PathInfo> m_content;

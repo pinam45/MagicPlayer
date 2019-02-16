@@ -5,7 +5,7 @@
 // See accompanying file LICENSE or copy at
 // https://opensource.org/licenses/MIT
 //
-#include "view/windows/FileExplorer.hpp"
+#include "view/windows/explorers/FileExplorer.hpp"
 #include "utils/log.hpp"
 
 #include <imgui.h>
@@ -14,9 +14,8 @@
 #include <sstream>
 #include <filesystem>
 
-FileExplorer::FileExplorer(std::string name, Msg::Sender sender)
+FileExplorer::FileExplorer(Msg::Sender sender)
   : m_sender(sender)
-  , m_name(std::move(name))
   , m_user_path()
   , m_path()
   , m_content()
@@ -34,10 +33,8 @@ void FileExplorer::init()
 {
 }
 
-void FileExplorer::show()
+void FileExplorer::print()
 {
-	ImGui::Begin(m_name.c_str()); // Explorer
-
 	// Display navigation buttons list
 	if(m_text_field_focus_state == focus_state::NOT_FOCUSED)
 	{
@@ -145,9 +142,10 @@ void FileExplorer::show()
 		}
 	}
 	ImGui::PopItemWidth();
+	ImGui::Separator();
 
 	// Display folder content
-	if(ImGui::BeginChild("Content"))
+	if(ImGui::BeginChild("Content", ImVec2(0, 0), true))
 	{
 		for(std::size_t i = 0; i < m_formatted_content.size(); ++i)
 		{
@@ -166,8 +164,6 @@ void FileExplorer::show()
 	{
 		selected_content = m_content.size();
 	}
-
-	ImGui::End(); // Explorer
 }
 
 void FileExplorer::processMessage(Msg::Out::FolderContent& message)
