@@ -17,6 +17,7 @@ namespace
 {
 	constexpr int DEFAULT_WIDTH = 600;
 	constexpr int DEFAULT_HEIGHT = 450;
+	constexpr int LEFT_PANEL_WIDTH = 150;
 	constexpr float BUTTONS_SPACING_FACTOR = 2.5f;
 	constexpr const char* LEFT_PANEL_TITLE_TXT = ICON_FA_COGS " Categories";
 	constexpr const char* REVERT_BUTTON_TXT = ICON_FA_UNDO " Revert";
@@ -144,7 +145,7 @@ SettingsEditor::DatabaseInfo::DatabaseInfo() noexcept
 void SettingsEditor::showLeftPanel(const float panel_height) noexcept
 {
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
-	ImGui::BeginChild("##left panel", ImVec2(150, panel_height), true);
+	ImGui::BeginChild("##left panel", ImVec2(LEFT_PANEL_WIDTH, panel_height), true);
 	ImGui::PopStyleVar();
 	{
 		ImGui::TextUnformatted(LEFT_PANEL_TITLE_TXT);
