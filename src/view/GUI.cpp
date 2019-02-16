@@ -286,7 +286,7 @@ void GUI::setupStyle()
 void GUI::loadInitialConfig()
 {
 	// FIXME: load/save config from file
-	m_style = ImGui::ETheming::ColorTheme::ArcDark;
+	m_style = ImGui::ETheming::ColorTheme::MintYDark;
 
 	m_explorer.init();
 	m_player.init();
