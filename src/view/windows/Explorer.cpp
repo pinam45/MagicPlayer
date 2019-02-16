@@ -125,12 +125,12 @@ std::string_view Explorer::ExplorerViewsTxt(Explorer::ExplorerViews explorerView
 	switch(explorerViews)
 	{
 		case ExplorerViews::ARTISTS:
-			return "Artists";
+			return ICON_FA_USER " Artists";
 		case ExplorerViews::ALBUMS:
-			return "Albums";
+			return ICON_FA_COMPACT_DISC " Albums";
 		case ExplorerViews::MUSICS:
-			return "Musics";
+			return ICON_FA_MUSIC " Musics";
 		case ExplorerViews::FILES:
-			return "Files";
+			return ICON_FA_FILE " Files";
 	}
 }
