@@ -15,7 +15,12 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # CMake utilities
-include(cmake/CMutils/cmutils.cmake)
+get_filename_component(CMUTILS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CMutils/cmutils.cmake" ABSOLUTE)
+if(EXISTS "${CMUTILS_PATH}")
+	include(${CMUTILS_PATH})
+else()
+	message(FATAL_ERROR "CMutils is missing, maybe you didn't pull the git submodules")
+endif()
 
 # Global config
 cmutils_disable_in_sources_build()
