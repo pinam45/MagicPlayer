@@ -8,10 +8,17 @@ if(is_empty)
 	message(FATAL_ERROR "utfcpp dependency is missing, maybe you didn't pull the git submodules")
 endif()
 
-# Variables
-get_filename_component(UTFCPP_INCLUDE_DIR  ${UTFCPP_DIR}/source  ABSOLUTE)
-set(UTFCPP_LIBRARY "")
+# Include utfcpp
+set(UTF8_TESTS OFF CACHE INTERNAL "")
+set(UTF8_SAMPLES OFF CACHE INTERNAL "")
+add_subdirectory(${UTFCPP_DIR})
+if(NOT TARGET utf8cpp)
+	message(FATAL_ERROR "utf8cpp target is missing")
+endif()
 
-# Message
-message("> include: ${UTFCPP_INCLUDE_DIR}")
+# Disable warnings on utf8cpp headers
+get_target_property(utf8cpp_include_directories utf8cpp INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(utf8cpp PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "")
+target_include_directories(utf8cpp SYSTEM INTERFACE ${utf8cpp_include_directories})
+
 message(STATUS "Configuring utfcpp - Done")

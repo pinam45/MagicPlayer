@@ -44,43 +44,31 @@ add_executable(MagicPlayer)
 # Add sources
 cmutils_target_sources_folders(
 	MagicPlayer PRIVATE
-	"${CMAKE_SOURCE_DIR}/src"
-	"${CMAKE_SOURCE_DIR}/include"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 # Add includes
 target_include_directories(
 	MagicPlayer PRIVATE
-	"${CMAKE_SOURCE_DIR}/include"
-)
-
-# Add external includes
-target_include_directories(
-	MagicPlayer SYSTEM PRIVATE
-	"${OPENGL_INCLUDE_DIR}"
-	"${SFML_INCLUDE_DIR}"
-	"${IMGUI_INCLUDE_DIR}"
-	"${IMGUI_SFML_INCLUDE_DIR}"
-	"${LIBMPG123_INCLUDE_DIR}"
-	"${SPDLOG_INCLUDE_DIR}"
-	"${ICON_FONT_CPP_HEADERS_INCLUDE_DIR}"
-	"${UTFCPP_INCLUDE_DIR}"
-	"${TAGLIB_INCLUDE_DIR}"
-	"${JSON_INCLUDE_DIR}"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 # Link dependencies
 target_link_libraries(
-  MagicPlayer PRIVATE
-  ${OPENGL_LIBRARY}
-  ${SFML_LIBRARY}
-  ${IMGUI_SFML_LIBRARY}
-  ${LIBMPG123_LIBRARY}
-  ${SPDLOG_LIBRARY}
-  ${ICON_FONT_CPP_HEADERS_LIBRARY}
-  ${UTFCPP_LIBRARY}
-  ${TAGLIB_LIBRARY}
-  ${JSON_LIBRARY}
+	MagicPlayer PRIVATE
+	OpenGL::GL
+	sfml-system
+	sfml-window
+	sfml-graphics
+	sfml-audio
+	imgui-sfml
+	libmpg123
+	spdlog
+	IconFontCppHeaders
+	utf8cpp
+	taglib
+	nlohmann_json
 )
 
 # Link threads library
@@ -123,25 +111,25 @@ endif()
 cmutils_target_set_ide_folder(MagicPlayer "MagicPlayer")
 
 # Group sources for IDEs
-cmutils_target_source_group(MagicPlayer "${CMAKE_SOURCE_DIR}")
+cmutils_target_source_group(MagicPlayer "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Visual studio config
 get_target_property(magicplayer_binary_folder MagicPlayer RUNTIME_OUTPUT_DIRECTORY)
 set_target_properties(
-  MagicPlayer PROPERTIES
-  VS_DEBUGGER_WORKING_DIRECTORY "${magicplayer_binary_folder}"
+	MagicPlayer PROPERTIES
+	VS_DEBUGGER_WORKING_DIRECTORY "${magicplayer_binary_folder}"
 )
 set_property(
-  DIRECTORY
-  ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY
-  VS_STARTUP_PROJECT MagicPlayer
+	DIRECTORY
+	${CMAKE_CURRENT_SOURCE_DIR} PROPERTY
+	VS_STARTUP_PROJECT MagicPlayer
 )
 
 # Resources
 cmutils_configure_folder(
-  "${CMAKE_SOURCE_DIR}/resources"
-  "${magicplayer_binary_folder}/resources"
-  COPYONLY
+	"${CMAKE_CURRENT_SOURCE_DIR}/resources"
+	"${magicplayer_binary_folder}/resources"
+	COPYONLY
 )
 
 # Enable console log in debug

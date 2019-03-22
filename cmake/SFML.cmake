@@ -1,7 +1,7 @@
 message(STATUS "Configuring SFML")
 
-# Cache config
-set(MAGICPLAYER_COMPILE_SFML_WITH_PROJECT OFF CACHE BOOL "Compile SFML with project, don't search system installation")
+# Compile with project option
+option(MAGICPLAYER_COMPILE_SFML_WITH_PROJECT "Compile SFML with project, don't search system installation" OFF)
 
 # Config
 set(SFML_MINIMUM_SYSTEM_VERSION 2.5)
@@ -15,17 +15,11 @@ if(NOT SFML_USE_EMBEDED)
 	else()
 		find_package(SFML ${SFML_MINIMUM_SYSTEM_VERSION} COMPONENTS system window graphics audio CONFIG)
 		if(SFML_FOUND)
-			# Variables
-			set(SFML_INCLUDE_DIR  "")
-			set(SFML_LIBRARY sfml-system sfml-window sfml-graphics sfml-audio)
-
-			# Message
-			message(WARNING "If the program crashes when using the clipboard,"
-			  " it is an SFML bug not yet fixed on your system but already fixed on Github (see https://github.com/SFML/SFML/pull/1437),"
-			  " use CMake with -DMAGICPLAYER_COMPILE_SFML_WITH_PROJECT=ON to compile and use the fixed version with the project")
-			message("> include: ${SFML_INCLUDE_DIR}")
-			message("> library: ${SFML_LIBRARY}")
-			message(STATUS "Configuring SFML - Done")
+			message(WARNING
+				"If the program crashes when using the clipboard,"
+				" it is an SFML bug not yet fixed on your system but already fixed on Github (see https://github.com/SFML/SFML/pull/1437),"
+				" use CMake with -DMAGICPLAYER_COMPILE_SFML_WITH_PROJECT=ON to compile and use the fixed version with the project"
+				)
 		else()
 			set(SFML_USE_EMBEDED ON)
 			message(STATUS "SFML system installation not found, compile SFML with project")
@@ -45,10 +39,19 @@ if(SFML_USE_EMBEDED)
 	# Subproject
 	add_subdirectory(${SFML_DIR})
 
-	# Configure SFML folder in IDE
+	# Configure targets
 	foreach(sfml_target IN ITEMS sfml-system sfml-network sfml-window sfml-graphics sfml-audio sfml-main)
 		if(TARGET ${sfml_target})
-			set_target_properties(${sfml_target} PROPERTIES FOLDER deps/SFML)
+			# Configure SFML folder in IDE
+			cmutils_target_set_ide_folder(${sfml_target} "deps/SFML")
+
+			# Disable warnings on headers
+			get_target_property(target_include_directories ${sfml_target} INTERFACE_INCLUDE_DIRECTORIES)
+			set_target_properties(${sfml_target} PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "")
+			target_include_directories(${sfml_target} SYSTEM INTERFACE ${target_include_directories})
+
+			# Setup output, put MagicPlayer executable and required SFML dll in the same folder
+			cmutils_target_set_output_directory(${sfml_target} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 		endif()
 	endforeach()
 
@@ -62,19 +65,6 @@ if(SFML_USE_EMBEDED)
 		endif()
 		configure_file(${SFML_DIR}/extlibs/bin/${ARCH_FOLDER}/openal32.dll "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" COPYONLY)
 	endif()
-
-	# Setup targets output, put exe and required SFML dll in the same folder
-	cmutils_target_set_output_directory(sfml-system "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-	cmutils_target_set_output_directory(sfml-window "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-	cmutils_target_set_output_directory(sfml-graphics "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-	cmutils_target_set_output_directory(sfml-audio "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-
-	# Variables
-	get_filename_component(SFML_INCLUDE_DIR  ${SFML_DIR}/include  ABSOLUTE)
-	set(SFML_LIBRARY sfml-system sfml-window sfml-graphics sfml-audio)
-
-	# Message
-	message("> include: ${SFML_INCLUDE_DIR}")
-	message("> library: [compiled with project]")
-	message(STATUS "Configuring SFML - Done")
 endif()
+
+message(STATUS "Configuring SFML - Done")

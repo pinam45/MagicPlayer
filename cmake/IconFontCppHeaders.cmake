@@ -2,10 +2,18 @@ message(STATUS "Configuring IconFontCppHeaders")
 
 get_filename_component(ICON_FONT_CPP_HEADERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extlibs/IconFontCppHeaders ABSOLUTE)
 
-# Variables
-get_filename_component(ICON_FONT_CPP_HEADERS_INCLUDE_DIR  ${ICON_FONT_CPP_HEADERS_DIR}  ABSOLUTE)
-set(ICON_FONT_CPP_HEADERS_LIBRARY "")
+# Declare IconFontCppHeaders
+add_library(IconFontCppHeaders INTERFACE)
 
-# Message
-message("> include: ${ICON_FONT_CPP_HEADERS_INCLUDE_DIR}")
+# Add includes
+target_include_directories(
+	IconFontCppHeaders SYSTEM INTERFACE
+	"${ICON_FONT_CPP_HEADERS_DIR}"
+)
+
+# Headers target for ide
+cmutils_interface_target_generate_headers_target(IconFontCppHeaders IconFontCppHeaders_headers_for_ide)
+cmutils_target_source_group(IconFontCppHeaders_headers_for_ide "${ICON_FONT_CPP_HEADERS_DIR}")
+cmutils_target_set_ide_folder(IconFontCppHeaders_headers_for_ide "deps/IconFontCppHeaders")
+
 message(STATUS "Configuring IconFontCppHeaders - Done")

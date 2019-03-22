@@ -11,8 +11,8 @@ set(EMBEDDED_LIBMPG123_MSVC_SHARED_FILENAME_DLL    "libmpg123.dll")
 
 cmutils_define_os_variables()
 if(OS_WINDOWS)
-	# Cache config
-	set(MAGICPLAYER_STATICALLY_LINK_LIBMPG123 OFF CACHE BOOL "Statically link libmpg123")
+	# Static link option
+	option(MAGICPLAYER_STATICALLY_LINK_LIBMPG123 "Statically link libmpg123" OFF)
 
 	# Embeded library config
 	cmutils_define_compiler_variables()
@@ -32,6 +32,7 @@ if(OS_WINDOWS)
 	set(EMBEDED_LIBMPG123_COPY_PATH ${EMBEDED_LIBMPG123_PATH}/lib/${COMPILER_FOLDER}/${ARCH_FOLDER})
 	if(MAGICPLAYER_STATICALLY_LINK_LIBMPG123)
 		# Static link
+		set(EMBEDED_LIBMPG123_LIBRARY_TYPE SHARED)
 		set(EMBEDED_LIBMPG123_LINK_PATH ${EMBEDED_LIBMPG123_LINK_PATH}/static)
 		if(COMPILER_CLANG OR COMPILER_MSVC)
 			set(EMBEDED_LIBMPG123_LINK_PATH ${EMBEDED_LIBMPG123_LINK_PATH}/${EMBEDDED_LIBMPG123_MSVC_STATIC_FILENAME})
@@ -40,6 +41,7 @@ if(OS_WINDOWS)
 		endif()
 	else()
 		# Dynamic link
+		set(EMBEDED_LIBMPG123_LIBRARY_TYPE STATIC)
 		set(EMBEDED_LIBMPG123_LINK_PATH ${EMBEDED_LIBMPG123_LINK_PATH}/shared)
 		set(EMBEDED_LIBMPG123_COPY_PATH ${EMBEDED_LIBMPG123_COPY_PATH}/shared)
 		if(COMPILER_CLANG OR COMPILER_MSVC)
@@ -49,13 +51,25 @@ if(OS_WINDOWS)
 			set(EMBEDED_LIBMPG123_LINK_PATH ${EMBEDED_LIBMPG123_LINK_PATH}/${EMBEDDED_LIBMPG123_MINGW_SHARED_FILENAME})
 			set(EMBEDED_LIBMPG123_COPY_PATH ${EMBEDED_LIBMPG123_COPY_PATH}/${EMBEDDED_LIBMPG123_MINGW_SHARED_FILENAME})
 		endif()
+
 		# Copy binary to output folder
 		configure_file(${EMBEDED_LIBMPG123_COPY_PATH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COPYONLY)
 	endif()
 
-	# Variables
-	get_filename_component(LIBMPG123_INCLUDE_DIR ${EMBEDED_LIBMPG123_PATH}/include ABSOLUTE)
-	get_filename_component(LIBMPG123_LIBRARY ${EMBEDED_LIBMPG123_LINK_PATH} ABSOLUTE)
+	# Declare libmpg123
+	add_library(libmpg123 ${EMBEDED_LIBMPG123_LIBRARY_TYPE} IMPORTED)
+
+	# Add includes
+	target_include_directories(
+		libmpg123 SYSTEM INTERFACE
+		"${EMBEDED_LIBMPG123_PATH}/include"
+	)
+
+	# Add linked binary
+	set_target_properties(
+		libmpg123 PROPERTIES
+		IMPORTED_LOCATION "${EMBEDED_LIBMPG123_LINK_PATH}"
+	)
 else()
 	# Find PkgConfig
 	find_package(PkgConfig REQUIRED)
@@ -69,12 +83,20 @@ else()
 		message(FATAL_ERROR "libmpg123 not found (dev version must be installed on the system to compile)")
 	endif()
 
-	# Variables
-	set(LIBMPG123_INCLUDE_DIR   ${LIBMPG123_INCLUDE_DIRS})
-	set(LIBMPG123_LIBRARY       ${LIBMPG123_LIBRARIES})
+	# Declare libmpg123
+	add_library(libmpg123 SHARED IMPORTED)
+
+	# Add includes
+	target_include_directories(
+		libmpg123 SYSTEM INTERFACE
+		"${LIBMPG123_INCLUDE_DIRS}"
+	)
+
+	# Add linked binary
+	set_target_properties(
+		libmpg123 PROPERTIES
+		IMPORTED_LOCATION "${LIBMPG123_LINK_LIBRARIES}"
+	)
 endif()
 
-# Message
-message("> include: ${LIBMPG123_INCLUDE_DIR}")
-message("> library: ${LIBMPG123_LIBRARY}")
 message(STATUS "Configuring libmpg123 - Done")

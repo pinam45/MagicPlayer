@@ -8,12 +8,16 @@ if(is_empty)
 	message(FATAL_ERROR "Json dependency is missing, maybe you didn't pull the git submodules")
 endif()
 
+# Include json
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(${JSON_DIR})
+if(NOT TARGET nlohmann_json)
+	message(FATAL_ERROR "nlohmann_json target is missing")
+endif()
 
-# Variables
-set(JSON_INCLUDE_DIR "")
-set(JSON_LIBRARY nlohmann_json::nlohmann_json)
+# Disable warnings on nlohmann_json headers
+get_target_property(nlohmann_json_include_directories nlohmann_json INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(nlohmann_json PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "")
+target_include_directories(nlohmann_json SYSTEM INTERFACE ${nlohmann_json_include_directories})
 
-# Message
 message(STATUS "Configuring json - Done")

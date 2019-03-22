@@ -9,9 +9,9 @@ if(NOT OPENGL_FOUND)
 	return()
 endif()
 
-# Variables
-set(OPENGL_INCLUDE_DIR   ${OPENGL_INCLUDE_DIRS})
-set(OPENGL_LIBRARY       ${OPENGL_gl_LIBRARY})
+if(NOT TARGET OpenGL::GL)
+	message(FATAL_ERROR "OpenGL::GL target is missing")
+endif()
 
 # Message
 message(STATUS "Configuring OpenGL - Done")

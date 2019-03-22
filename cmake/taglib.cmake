@@ -62,7 +62,7 @@ target_compile_definitions(tag PUBLIC HAVE_CONFIG_H)
 # Configure compile options
 cmutils_target_configure_compile_options(tag)
 
-# Disable  warnings
+# Disable warnings
 cmutils_target_disable_warnings(tag)
 
 # Build in C++11
@@ -90,13 +90,14 @@ file(
 	DESTINATION "${TAGLIB_IMPORTED_INCLUDE_DIR}/taglib"
 	PATTERN "*/tagutils.h" EXCLUDE
 )
-target_include_directories(taglib SYSTEM INTERFACE "${TAGLIB_IMPORTED_INCLUDE_DIR}")
+target_include_directories(
+	taglib SYSTEM INTERFACE
+	"${TAGLIB_IMPORTED_INCLUDE_DIR}"
+)
 
-# Variables
-set(TAGLIB_INCLUDE_DIR "")
-set(TAGLIB_LIBRARY taglib)
+# Headers target for ide
+cmutils_interface_target_generate_headers_target(taglib taglib_headers_for_ide)
+cmutils_target_source_group(taglib_headers_for_ide "${TAGLIB_IMPORTED_INCLUDE_DIR}")
+cmutils_target_set_ide_folder(taglib_headers_for_ide "deps/generated/taglib")
 
-# Message
-message("> include: ${TAGLIB_IMPORTED_INCLUDE_DIR}/taglib")
-message("> library: [compiled with project]")
 message(STATUS "Configuring taglib - Done")
