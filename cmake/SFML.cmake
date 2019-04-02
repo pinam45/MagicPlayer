@@ -28,7 +28,7 @@ if(NOT SFML_USE_EMBEDED)
 endif()
 
 if(SFML_USE_EMBEDED)
-	get_filename_component(SFML_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/SFML ABSOLUTE)
+	get_filename_component(SFML_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extlibs/SFML ABSOLUTE)
 
 	# Submodule check
 	cmutils_directory_is_empty(is_empty "${SFML_DIR}")
@@ -43,7 +43,7 @@ if(SFML_USE_EMBEDED)
 	foreach(sfml_target IN ITEMS sfml-system sfml-network sfml-window sfml-graphics sfml-audio sfml-main)
 		if(TARGET ${sfml_target})
 			# Configure SFML folder in IDE
-			cmutils_target_set_ide_folder(${sfml_target} "deps/SFML")
+			cmutils_target_set_ide_folder(${sfml_target} "extlibs/SFML")
 
 			# Disable warnings on headers
 			get_target_property(target_include_directories ${sfml_target} INTERFACE_INCLUDE_DIRECTORIES)

@@ -1,6 +1,6 @@
 message(STATUS "Configuring spdlog")
 
-get_filename_component(SPDLOG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/spdlog ABSOLUTE)
+get_filename_component(SPDLOG_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extlibs/spdlog ABSOLUTE)
 
 # Submodule check
 cmutils_directory_is_empty(is_empty "${SPDLOG_DIR}")
@@ -21,7 +21,7 @@ target_include_directories(spdlog SYSTEM INTERFACE ${spdlog_include_directories}
 
 if(TARGET spdlog_headers_for_ide)
 	# Set target IDE folder
-	cmutils_target_set_ide_folder(spdlog_headers_for_ide "deps/spdlog")
+	cmutils_target_set_ide_folder(spdlog_headers_for_ide "extlibs/spdlog")
 endif()
 
 message(STATUS "Configuring spdlog - Done")

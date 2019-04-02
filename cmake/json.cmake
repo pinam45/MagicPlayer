@@ -1,6 +1,6 @@
 message(STATUS "Configuring json")
 
-get_filename_component(JSON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/json ABSOLUTE)
+get_filename_component(JSON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extlibs/json ABSOLUTE)
 
 # Submodule check
 cmutils_directory_is_empty(is_empty "${JSON_DIR}")

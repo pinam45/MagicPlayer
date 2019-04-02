@@ -1,9 +1,9 @@
 message(STATUS "Configuring taglib")
 
-get_filename_component(TAGLIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps/taglib" ABSOLUTE)
+get_filename_component(TAGLIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/extlibs/taglib" ABSOLUTE)
 get_filename_component(TAGLIB_SRC_DIR "${TAGLIB_DIR}/taglib" ABSOLUTE)
-get_filename_component(TAGLIB_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}/deps/taglib/config" ABSOLUTE)
-get_filename_component(TAGLIB_IMPORTED_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/deps/taglib/include" ABSOLUTE)
+get_filename_component(TAGLIB_CONFIG_DIR "${CMAKE_CURRENT_BINARY_DIR}/extlibs/taglib/config" ABSOLUTE)
+get_filename_component(TAGLIB_IMPORTED_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/extlibs/taglib/include" ABSOLUTE)
 
 # Submodule check
 cmutils_directory_is_empty(is_empty "${TAGLIB_DIR}")
@@ -72,7 +72,7 @@ cmutils_target_set_standard(tag CXX 11)
 cmutils_target_set_runtime(tag DYNAMIC)
 
 # Set target IDE folder
-cmutils_target_set_ide_folder(tag "deps/taglib")
+cmutils_target_set_ide_folder(tag "extlibs/taglib")
 
 # Group sources for IDEs
 cmutils_target_source_group(tag "${TAGLIB_SRC_DIR}")
@@ -98,6 +98,6 @@ target_include_directories(
 # Headers target for ide
 cmutils_interface_target_generate_headers_target(taglib taglib_headers_for_ide)
 cmutils_target_source_group(taglib_headers_for_ide "${TAGLIB_IMPORTED_INCLUDE_DIR}")
-cmutils_target_set_ide_folder(taglib_headers_for_ide "deps/generated/taglib")
+cmutils_target_set_ide_folder(taglib_headers_for_ide "extlibs/generated/taglib")
 
 message(STATUS "Configuring taglib - Done")

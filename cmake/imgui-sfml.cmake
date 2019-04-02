@@ -1,7 +1,7 @@
 message(STATUS "Configuring imgui-sfml")
 
-get_filename_component(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/imgui ABSOLUTE)
-get_filename_component(IMGUI_SFML_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/imgui-sfml ABSOLUTE)
+get_filename_component(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extlibs/imgui ABSOLUTE)
+get_filename_component(IMGUI_SFML_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extlibs/imgui-sfml ABSOLUTE)
 get_filename_component(IMGUI_SFML_TARGET_DIR ${CMAKE_CURRENT_BINARY_DIR}/imgui-sfml ABSOLUTE)
 
 # Submodules check
@@ -81,7 +81,7 @@ cmutils_target_set_standard(imgui-sfml CXX 17)
 cmutils_target_set_runtime(imgui-sfml DYNAMIC)
 
 # Set target IDE folder
-cmutils_target_set_ide_folder(imgui-sfml "deps/generated/imgui-sfml")
+cmutils_target_set_ide_folder(imgui-sfml "extlibs/generated/imgui-sfml")
 
 # Group sources for IDEs
 cmutils_target_source_group(imgui-sfml "${IMGUI_SFML_TARGET_DIR}")
