@@ -20,6 +20,10 @@ namespace
 	constexpr const char* SETTINGS_FILE_PATH = "MagicPlayer_settings.json";
 } // namespace
 
+data::Settings::Settings() noexcept: explorer_folder(DEFAULT_EXPLORER_FOLDER)
+{
+}
+
 std::ostream& data::operator<<(std::ostream& os, const Settings& settings)
 {
 	os << "Settings{"

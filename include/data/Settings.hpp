@@ -21,7 +21,7 @@ namespace data
 		utf8_path explorer_folder;
 		std::vector<utf8_path> music_sources;
 
-		Settings() noexcept = default;
+		Settings() noexcept;
 	};
 	std::ostream& operator<<(std::ostream& os, const Settings& settings);
 
