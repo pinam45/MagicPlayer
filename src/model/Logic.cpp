@@ -48,7 +48,7 @@ template<>
 void Logic::handleMessage(Msg::In::Open& message)
 {
 	SPDLOG_DEBUG(m_logger, "Received open request: {}", message.path);
-	if(!message.path.valid())
+	if(!message.path.valid_encoding())
 	{
 		m_logger->warn("Tried to open file/folder with invalid utf8 path: {}", message.path);
 		return;

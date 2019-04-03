@@ -36,13 +36,13 @@ public:
 	std::string_view str() const noexcept;
 	const std::string& str_cref() const noexcept;
 	const std::filesystem::path& path() const noexcept;
-	bool valid() const noexcept;
+	bool valid_encoding() const noexcept;
 
 private:
 	void set_str() noexcept;
 	void set_path() noexcept;
 
-	bool m_valid;
+	bool m_valid_encoding;
 	std::string m_utf8_str;
 	std::filesystem::path m_path;
 };

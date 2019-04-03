@@ -9,43 +9,47 @@
 
 #include <utf8.h>
 
-utf8_path::utf8_path() noexcept: m_valid(), m_utf8_str(), m_path()
+utf8_path::utf8_path() noexcept: m_valid_encoding(true), m_utf8_str(), m_path()
 {
 }
 
 utf8_path::utf8_path(const utf8_path& other) noexcept
-  : m_valid(other.m_valid), m_utf8_str(other.m_utf8_str), m_path(other.m_path)
+  : m_valid_encoding(other.m_valid_encoding), m_utf8_str(other.m_utf8_str), m_path(other.m_path)
 {
 }
 
 utf8_path::utf8_path(utf8_path&& other) noexcept
-  : m_valid(other.m_valid), m_utf8_str(std::move(other.m_utf8_str)), m_path(std::move(other.m_path))
+  : m_valid_encoding(other.m_valid_encoding)
+  , m_utf8_str(std::move(other.m_utf8_str))
+  , m_path(std::move(other.m_path))
 {
 }
 
-utf8_path::utf8_path(const char* str) noexcept: m_valid(), m_utf8_str(str), m_path()
-{
-	set_path();
-}
-
-utf8_path::utf8_path(std::string_view str) noexcept: m_valid(), m_utf8_str(str), m_path()
+utf8_path::utf8_path(const char* str) noexcept: m_valid_encoding(true), m_utf8_str(str), m_path()
 {
 	set_path();
 }
 
-utf8_path::utf8_path(std::string&& str) noexcept: m_valid(), m_utf8_str(std::move(str)), m_path()
+utf8_path::utf8_path(std::string_view str) noexcept
+  : m_valid_encoding(true), m_utf8_str(str), m_path()
+{
+	set_path();
+}
+
+utf8_path::utf8_path(std::string&& str) noexcept
+  : m_valid_encoding(true), m_utf8_str(std::move(str)), m_path()
 {
 	set_path();
 }
 
 utf8_path::utf8_path(const std::filesystem::path& path) noexcept
-  : m_valid(), m_utf8_str(), m_path(path)
+  : m_valid_encoding(true), m_utf8_str(), m_path(path)
 {
 	set_str();
 }
 
 utf8_path::utf8_path(std::filesystem::path&& path) noexcept
-  : m_valid(), m_utf8_str(), m_path(std::move(path))
+  : m_valid_encoding(true), m_utf8_str(), m_path(std::move(path))
 {
 	set_str();
 }
@@ -54,7 +58,7 @@ utf8_path& utf8_path::operator=(const utf8_path& other) noexcept
 {
 	if(this != &other)
 	{
-		m_valid = other.m_valid;
+		m_valid_encoding = other.m_valid_encoding;
 		m_utf8_str = other.m_utf8_str;
 		m_path = other.m_path;
 	}
@@ -65,7 +69,7 @@ utf8_path& utf8_path::operator=(utf8_path&& other) noexcept
 {
 	if(this != &other)
 	{
-		m_valid = other.m_valid;
+		m_valid_encoding = other.m_valid_encoding;
 		m_utf8_str = std::move(other.m_utf8_str);
 		m_path = std::move(other.m_path);
 	}
@@ -124,24 +128,24 @@ const std::filesystem::path& utf8_path::path() const noexcept
 
 void utf8_path::set_str() noexcept
 {
-	m_valid = path_to_generic_utf8_string(m_path, m_utf8_str);
-	if(!m_valid)
+	m_valid_encoding = path_to_generic_utf8_string(m_path, m_utf8_str);
+	if(!m_valid_encoding)
 	{
 		m_utf8_str = path_to_generic_utf8_string(m_path);
 	}
 }
 void utf8_path::set_path() noexcept
 {
-	m_valid = utf8_string_to_path(m_utf8_str, m_path);
-	if(!m_valid)
+	m_valid_encoding = utf8_string_to_path(m_utf8_str, m_path);
+	if(!m_valid_encoding)
 	{
 		m_path = utf8_string_to_path(m_utf8_str);
 	}
 }
 
-bool utf8_path::valid() const noexcept
+bool utf8_path::valid_encoding() const noexcept
 {
-	return m_valid;
+	return m_valid_encoding;
 }
 
 std::ostream& operator<<(std::ostream& os, const utf8_path& utf8_path)

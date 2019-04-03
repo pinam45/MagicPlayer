@@ -105,7 +105,7 @@ void FileExplorer::print()
 		                    ImGuiInputTextFlags_EnterReturnsTrue))
 		{
 			utf8_path path = m_user_path.data();
-			if(!path.valid())
+			if(!path.valid_encoding())
 			{
 				m_logger->warn("Inputted path contains invalid utf8 characters: {}", path);
 			}
@@ -176,7 +176,7 @@ void FileExplorer::processMessage(Msg::Out::FolderContent& message)
 		m_logger->warn("Failed to get canonical path of folder {}", path);
 		return;
 	}
-	if(!path.valid())
+	if(!path.valid_encoding())
 	{
 		m_logger->warn("Received content of folder with invalid utf8 path: {}", path);
 		return;

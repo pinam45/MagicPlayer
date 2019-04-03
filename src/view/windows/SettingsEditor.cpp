@@ -304,7 +304,7 @@ void SettingsEditor::showErrorPopupModal() noexcept
 void SettingsEditor::revertSettingsInputs() noexcept
 {
 	std::string_view explorer_folder_txt;
-	if(!m_settings.explorer_folder.valid())
+	if(!m_settings.explorer_folder.valid_encoding())
 	{
 		m_logger->warn("Settings path contain invalid utf8 characters: {}",
 		               m_settings.explorer_folder);
@@ -324,7 +324,7 @@ void SettingsEditor::revertSettingsInputs() noexcept
 	for(const utf8_path& path: m_settings.music_sources)
 	{
 		std::string_view path_txt;
-		if(!path.valid())
+		if(!path.valid_encoding())
 		{
 			m_logger->warn("Settings path contain invalid utf8 characters: {}",
 			               m_settings.explorer_folder);
@@ -344,7 +344,7 @@ void SettingsEditor::revertSettingsInputs() noexcept
 bool SettingsEditor::applySettingsInputs() noexcept
 {
 	utf8_path explorer_folder = m_explorer_folder_buffer.data();
-	if(!explorer_folder.valid())
+	if(!explorer_folder.valid_encoding())
 	{
 		std::stringstream tmp;
 		tmp << "Explorer folder path contain invalid UTF8 characters:\n";
@@ -357,7 +357,7 @@ bool SettingsEditor::applySettingsInputs() noexcept
 	for(const auto& buffer: m_musics_sources_buffers)
 	{
 		utf8_path music_source = buffer.data();
-		if(!music_source.valid())
+		if(!music_source.valid_encoding())
 		{
 			std::stringstream tmp;
 			tmp << "Music source path contain invalid UTF8 characters:\n";

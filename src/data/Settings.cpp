@@ -50,7 +50,7 @@ bool data::saveSettings(data::Settings& settings,
 		             settings.explorer_folder);
 		path = settings.explorer_folder;
 	}
-	if(!path.valid())
+	if(!path.valid_encoding())
 	{
 		logger->warn("Explorer folder have an invalid utf8 path and can't be saved: {}", path);
 	}
@@ -73,7 +73,7 @@ bool data::saveSettings(data::Settings& settings,
 			  music_source);
 			path = music_source;
 		}
-		if(!path.valid())
+		if(!path.valid_encoding())
 		{
 			logger->warn("Music source have an invalid utf8 path and can't be saved: {}", path);
 		}
@@ -135,7 +135,7 @@ data::Settings data::loadSettings(const std::shared_ptr<spdlog::logger>& logger)
 		else
 		{
 			settings.explorer_folder = it->get<std::string>();
-			if(!settings.explorer_folder.valid())
+			if(!settings.explorer_folder.valid_encoding())
 			{
 				logger->warn(
 				  "Explorer folder loaded from saved settings contains invalid utf8 characters: {}, default path will be used",
@@ -161,7 +161,7 @@ data::Settings data::loadSettings(const std::shared_ptr<spdlog::logger>& logger)
 			             DEFAULT_EXPLORER_FOLDER);
 			settings.explorer_folder = DEFAULT_EXPLORER_FOLDER;
 		}
-		if(!settings.explorer_folder.valid())
+		if(!settings.explorer_folder.valid_encoding())
 		{
 			logger->warn("Default explorer folder contains invalid utf8 characters: {}",
 			             settings.explorer_folder);
@@ -186,7 +186,7 @@ data::Settings data::loadSettings(const std::shared_ptr<spdlog::logger>& logger)
 				else
 				{
 					utf8_path path = source.get<std::string>();
-					if(!path.valid())
+					if(!path.valid_encoding())
 					{
 						logger->warn(
 						  "Saved settings contains a music source with an invalid utf8 path: {}, the source will be ignored",

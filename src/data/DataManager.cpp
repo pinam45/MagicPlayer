@@ -88,7 +88,7 @@ std::shared_ptr<const data::Database> data::DataManager::generateDatabase(
 
 	for(const utf8_path& path: sources)
 	{
-		if(!path.valid())
+		if(!path.valid_encoding())
 		{
 			m_logger->warn("Music source folder contains invalid utf8 characters: {}", path);
 			continue;
