@@ -1,22 +1,22 @@
-[submodule "deps/SFML"]
+[submodule "extlibs/SFML"]
 	path = extlibs/SFML
 	url = https://github.com/SFML/SFML
-[submodule "deps/imgui"]
+[submodule "extlibs/imgui"]
 	path = extlibs/imgui
 	url = https://github.com/ocornut/imgui/
-[submodule "deps/imgui-sfml"]
+[submodule "extlibs/imgui-sfml"]
 	path = extlibs/imgui-sfml
 	url = https://github.com/eliasdaler/imgui-sfml
-[submodule "deps/spdlog"]
+[submodule "extlibs/spdlog"]
 	path = extlibs/spdlog
 	url = https://github.com/gabime/spdlog
-[submodule "deps/utfcpp"]
+[submodule "extlibs/utfcpp"]
 	path = extlibs/utfcpp
 	url = https://github.com/nemtrif/utfcpp
-[submodule "deps/taglib"]
+[submodule "extlibs/taglib"]
 	path = extlibs/taglib
 	url = https://github.com/taglib/taglib
-[submodule "deps/json"]
+[submodule "extlibs/json"]
 	path = extlibs/json
 	url = https://github.com/nlohmann/json
 [submodule "cmake/CMutils"]
