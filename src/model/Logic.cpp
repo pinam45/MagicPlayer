@@ -9,6 +9,7 @@
 #include "utils/log.hpp"
 #include "utils/audio_extensions.hpp"
 #include "data/DataManager.hpp"
+#include "utils/dependent_false.hpp"
 
 #include "SoundFileReaderMp3.hpp"
 
@@ -21,11 +22,6 @@
 
 namespace
 {
-	template<typename T>
-	struct dependent_false : public std::false_type
-	{
-	};
-
 	std::once_flag SFML_inited;
 	void init_SFML()
 	{
@@ -440,6 +436,6 @@ void Logic::async_task(Lambda lambda, Parameters... parameters)
 	}
 	else
 	{
-		static_assert(dependent_false<Lambda>::value, "Invalid lambda return type");
+		static_assert(dependent_false_v<Lambda>, "Invalid lambda return type");
 	}
 }
