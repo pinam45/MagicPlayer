@@ -9,6 +9,7 @@
 #define MAGICPLAYER_ALBUM_HPP
 
 #include "data/Music.hpp"
+#include "utils/IdGenerator.hpp"
 
 #include <SFML/Graphics/Image.hpp>
 
@@ -24,7 +25,7 @@ namespace data
 
 	struct Album final
 	{
-		std::uint64_t id;
+		id::type id;
 		const Artist* artist;
 
 		std::string name;
@@ -43,7 +44,7 @@ namespace data
 
 		~Album() noexcept = default;
 
-		const Music* findMusic(std::uint64_t id) const noexcept;
+		const Music* findMusic(id::type id) const noexcept;
 
 	private:
 		friend class DataManager;

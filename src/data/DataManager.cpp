@@ -276,9 +276,9 @@ bool data::DataManager::loadMusicFromFile(const std::filesystem::path& file_path
 
 void data::DataManager::attributeIds(std::shared_ptr<data::Database>& database)
 {
-	std::lock_guard<IdGenerator> guard(m_idGenerator);
+	std::lock_guard<id::Generator> guard(m_idGenerator);
 
-	assert(database->id == IdGenerator::INVALID_ID);
+	assert(database->id == id::INVALID);
 	database->id = m_idGenerator.next_id();
 	std::vector<Artist>& artists = database->artists;
 	for(Artist& artist: artists)
@@ -291,7 +291,7 @@ void data::DataManager::attributeIds(std::shared_ptr<data::Database>& database)
 			std::vector<Music>& musics = album.musics;
 			for(Music& music: musics)
 			{
-				assert(music.id == IdGenerator::INVALID_ID);
+				assert(music.id == id::INVALID);
 				music.id = m_idGenerator.next_id();
 			}
 		}

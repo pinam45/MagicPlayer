@@ -11,9 +11,9 @@
 #include <utility>
 #include <cassert>
 
-const data::Music* data::Album::findMusic(std::uint64_t search_id) const noexcept
+const data::Music* data::Album::findMusic(id::type search_id) const noexcept
 {
-	assert(search_id != IdGenerator::INVALID_ID);
+	assert(search_id != id::INVALID);
 	if(id <= search_id)
 	{
 		return nullptr;

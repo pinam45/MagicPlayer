@@ -9,6 +9,7 @@
 #define MAGICPLAYER_ARTIST_HPP
 
 #include "data/Album.hpp"
+#include "utils/IdGenerator.hpp"
 
 #include <string>
 #include <vector>
@@ -18,7 +19,7 @@ namespace data
 {
 	struct Artist final
 	{
-		std::uint64_t id;
+		id::type id;
 
 		std::string name;
 
@@ -32,7 +33,7 @@ namespace data
 
 		~Artist() noexcept = default;
 
-		std::vector<const Music*> findMusics(std::uint64_t id) const noexcept;
+		std::vector<const Music*> findMusics(id::type id) const noexcept;
 
 	private:
 		friend class DataManager;

@@ -18,7 +18,7 @@ namespace data
 {
 	struct Database final
 	{
-		std::uint64_t id;
+		id::type id;
 		std::vector<utf8_path> sources;
 		std::chrono::system_clock::time_point generation_date;
 
@@ -32,7 +32,7 @@ namespace data
 
 		~Database() noexcept = default;
 
-		std::vector<const Music*> findMusics(std::uint64_t id) const noexcept;
+		std::vector<const Music*> findMusics(id::type id) const noexcept;
 
 	private:
 		friend class DataManager;

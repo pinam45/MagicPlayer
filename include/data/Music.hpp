@@ -9,6 +9,7 @@
 #define MAGICPLAYER_MUSIC_HPP
 
 #include "utils/path_utils.hpp"
+#include "utils/IdGenerator.hpp"
 
 #include <string>
 #include <chrono>
@@ -20,7 +21,7 @@ namespace data
 
 	struct Music final
 	{
-		std::uint64_t id;
+		id::type id;
 		const Album* album;
 
 		int track;

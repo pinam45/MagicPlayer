@@ -11,32 +11,36 @@
 #include <cstdint>
 #include <mutex>
 
-class IdGenerator
+namespace id
 {
-public:
-	static constexpr std::uint64_t INVALID_ID = 0;
+	typedef std::uint64_t type;
+	constexpr type INVALID = 0;
 
-	IdGenerator() noexcept = default;
+	class Generator
+	{
+	public:
+		Generator() noexcept = default;
 
-	IdGenerator(const IdGenerator&) = delete;
-	IdGenerator& operator=(const IdGenerator&) = delete;
+		Generator(const Generator&) = delete;
+		Generator& operator=(const Generator&) = delete;
 
-	IdGenerator(IdGenerator&&) = delete;
-	IdGenerator& operator=(IdGenerator&&) = delete;
+		Generator(Generator&&) = delete;
+		Generator& operator=(Generator&&) = delete;
 
-	~IdGenerator() noexcept = default;
+		~Generator() noexcept = default;
 
-	void lock();
-	void unlock() noexcept;
+		void lock();
+		void unlock() noexcept;
 
-	std::uint64_t next_id() noexcept;
+		type next_id() noexcept;
 
-private:
-	std::mutex m_mutex;
-	std::uint64_t m_next_id = INVALID_ID + 1;
+	private:
+		std::mutex m_mutex;
+		type m_next_id = INVALID + 1;
 #ifndef NDEBUG
-	bool m_debug_locked = false;
+		bool m_debug_locked = false;
 #endif
-};
+	};
+} // namespace id
 
 #endif //MAGICPLAYER_IDGENERATOR_HPP

@@ -65,7 +65,7 @@ namespace data
 
 		Music* addMusic(Music&& music, Album& album);
 
-		IdGenerator m_idGenerator;
+		id::Generator m_idGenerator;
 		std::shared_ptr<spdlog::logger> m_logger;
 	};
 } // namespace data

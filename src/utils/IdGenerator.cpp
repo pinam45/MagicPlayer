@@ -12,36 +12,36 @@
 #	include <spdlog/spdlog.h>
 #endif
 
-void IdGenerator::lock()
+void id::Generator::lock()
 {
 	m_mutex.lock();
 #ifndef NDEBUG
 	if(m_debug_locked)
 	{
-		spdlog::get(GENERAL_LOGGER_NAME)->error("IdGenerator: locked twice?");
+		spdlog::get(GENERAL_LOGGER_NAME)->error("id::Generator: locked twice?");
 	}
 	m_debug_locked = true;
 #endif
 }
 
-void IdGenerator::unlock() noexcept
+void id::Generator::unlock() noexcept
 {
 #ifndef NDEBUG
 	if(!m_debug_locked)
 	{
-		spdlog::get(GENERAL_LOGGER_NAME)->error("IdGenerator: unlocked while not locked");
+		spdlog::get(GENERAL_LOGGER_NAME)->error("id::Generator: unlocked while not locked");
 	}
 	m_debug_locked = false;
 #endif
 	m_mutex.unlock();
 }
 
-std::uint64_t IdGenerator::next_id() noexcept
+id::type id::Generator::next_id() noexcept
 {
 #ifndef NDEBUG
 	if(!m_debug_locked)
 	{
-		spdlog::get(GENERAL_LOGGER_NAME)->error("IdGenerator: used while not locked");
+		spdlog::get(GENERAL_LOGGER_NAME)->error("id::Generator: used while not locked");
 		m_mutex.unlock();
 	}
 #endif

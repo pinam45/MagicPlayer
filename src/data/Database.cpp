@@ -14,9 +14,9 @@ data::Database::Database() noexcept: id(), sources(), artists()
 {
 }
 
-std::vector<const data::Music*> data::Database::findMusics(std::uint64_t search_id) const noexcept
+std::vector<const data::Music*> data::Database::findMusics(id::type search_id) const noexcept
 {
-	assert(search_id != IdGenerator::INVALID_ID);
+	assert(search_id != id::INVALID);
 	std::vector<const data::Music*> found_musics;
 
 	if(search_id == id)
@@ -37,10 +37,9 @@ std::vector<const data::Music*> data::Database::findMusics(std::uint64_t search_
 
 	// search artist
 	std::vector<Artist>::const_iterator it = std::lower_bound(
-	  artists.cbegin(),
-	  artists.cend(),
-	  search_id,
-	  [](const Artist& artist, std::uint64_t wanted_id) { return artist.id < wanted_id; });
+	  artists.cbegin(), artists.cend(), search_id, [](const Artist& artist, id::type wanted_id) {
+		  return artist.id < wanted_id;
+	  });
 	if(it == artists.cend())
 	{
 		return found_musics;

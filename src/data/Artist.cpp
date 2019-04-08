@@ -10,9 +10,9 @@
 
 #include <cassert>
 
-std::vector<const data::Music*> data::Artist::findMusics(std::uint64_t search_id) const noexcept
+std::vector<const data::Music*> data::Artist::findMusics(id::type search_id) const noexcept
 {
-	assert(search_id != IdGenerator::INVALID_ID);
+	assert(search_id != id::INVALID);
 	std::vector<const data::Music*> found_musics;
 
 	if(search_id == id)
@@ -30,7 +30,7 @@ std::vector<const data::Music*> data::Artist::findMusics(std::uint64_t search_id
 
 	// search album
 	std::vector<Album>::const_iterator it = std::lower_bound(
-	  albums.cbegin(), albums.cend(), search_id, [](const Album& album, std::uint64_t wanted_id) {
+	  albums.cbegin(), albums.cend(), search_id, [](const Album& album, id::type wanted_id) {
 		  return album.id < wanted_id;
 	  });
 	if(it == albums.cend())
