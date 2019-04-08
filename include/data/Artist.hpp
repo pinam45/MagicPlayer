@@ -9,7 +9,7 @@
 #define MAGICPLAYER_ARTIST_HPP
 
 #include "data/Album.hpp"
-#include "utils/IdGenerator.hpp"
+#include "utils/id.hpp"
 
 #include <string>
 #include <vector>

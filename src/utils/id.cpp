@@ -5,7 +5,7 @@
 // See accompanying file LICENSE or copy at
 // https://opensource.org/licenses/MIT
 //
-#include "utils/IdGenerator.hpp"
+#include "utils/id.hpp"
 
 #ifndef NDEBUG
 #	include <utils/log.hpp>

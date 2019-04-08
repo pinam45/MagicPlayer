@@ -9,6 +9,7 @@
 #define MAGICPLAYER_DATABASE_HPP
 
 #include "utils/path_utils.hpp"
+#include "utils/id.hpp"
 #include "data/Artist.hpp"
 
 #include <cstdint>

@@ -9,7 +9,7 @@
 #define MAGICPLAYER_ALBUM_HPP
 
 #include "data/Music.hpp"
-#include "utils/IdGenerator.hpp"
+#include "utils/id.hpp"
 
 #include <SFML/Graphics/Image.hpp>
 

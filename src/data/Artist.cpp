@@ -6,7 +6,6 @@
 // https://opensource.org/licenses/MIT
 //
 #include "data/Artist.hpp"
-#include "utils/IdGenerator.hpp"
 
 #include <cassert>
 

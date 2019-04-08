@@ -9,7 +9,7 @@
 #define MAGICPLAYER_DATAMANAGER_HPP
 
 #include "data/Database.hpp"
-#include "utils/IdGenerator.hpp"
+#include "utils/id.hpp"
 #include "utils/path_utils.hpp"
 
 #include <spdlog/logger.h>

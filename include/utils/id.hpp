@@ -5,8 +5,8 @@
 // See accompanying file LICENSE or copy at
 // https://opensource.org/licenses/MIT
 //
-#ifndef MAGICPLAYER_IDGENERATOR_HPP
-#define MAGICPLAYER_IDGENERATOR_HPP
+#ifndef MAGICPLAYER_ID_HPP
+#define MAGICPLAYER_ID_HPP
 
 #include <cstdint>
 #include <mutex>
@@ -43,4 +43,4 @@ namespace id
 	};
 } // namespace id
 
-#endif //MAGICPLAYER_IDGENERATOR_HPP
+#endif //MAGICPLAYER_ID_HPP

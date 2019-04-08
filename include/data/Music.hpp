@@ -9,7 +9,7 @@
 #define MAGICPLAYER_MUSIC_HPP
 
 #include "utils/path_utils.hpp"
-#include "utils/IdGenerator.hpp"
+#include "utils/id.hpp"
 
 #include <string>
 #include <chrono>
