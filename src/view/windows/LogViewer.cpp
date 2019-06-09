@@ -9,6 +9,7 @@
 #include "utils/log.hpp"
 
 #include <spdlog/spdlog.h>
+#include <imgui_internal.h>
 
 #include <cassert>
 #include <utility>
@@ -25,28 +26,37 @@ namespace
 	constexpr std::array<float, 3> LOG_ERR_COLOR{1.0f, 0.42f, 0.408f};
 	constexpr std::array<float, 3> LOG_CRITICAL_COLOR{0.893f, 0.694f, 1.0f};
 	constexpr std::array<float, 3> LOG_DEFAULT_COLOR{1.0f, 1.0f, 1.0f};
+
+	constexpr spdlog::level::level_enum SPDLOG_LEVELS[]{
+	  spdlog::level::trace,
+	  spdlog::level::debug,
+	  spdlog::level::info,
+	  spdlog::level::warn,
+	  spdlog::level::err,
+	  spdlog::level::critical,
+	  spdlog::level::off,
+	};
 } // namespace
 
 LogViewer::LogViewer(std::string name)
   : m_logs_colors()
+  , m_log_level(spdlog::level::trace)
   , m_name(std::move(name))
   , m_auto_scroll(true)
+  , m_wrap_lines(false)
   , m_logger(spdlog::get(VIEW_LOGGER_NAME))
 {
 	assert(STORED_LOGS != nullptr);
-	m_logs_colors[spdlog::level::trace] = {
-	  LOG_TRACE_COLOR[0], LOG_TRACE_COLOR[1], LOG_TRACE_COLOR[2], 1.0};
-	m_logs_colors[spdlog::level::debug] = {
-	  LOG_DEBUG_COLOR[0], LOG_DEBUG_COLOR[1], LOG_DEBUG_COLOR[2], 1.0};
-	m_logs_colors[spdlog::level::info] = {
-	  LOG_INFO_COLOR[0], LOG_INFO_COLOR[1], LOG_INFO_COLOR[2], 1.0};
-	m_logs_colors[spdlog::level::warn] = {
-	  LOG_WARN_COLOR[0], LOG_WARN_COLOR[1], LOG_WARN_COLOR[2], 1.0};
+
+	// clang-format off
+	m_logs_colors[spdlog::level::trace] = {LOG_TRACE_COLOR[0], LOG_TRACE_COLOR[1], LOG_TRACE_COLOR[2], 1.0};
+	m_logs_colors[spdlog::level::debug] = {LOG_DEBUG_COLOR[0], LOG_DEBUG_COLOR[1], LOG_DEBUG_COLOR[2], 1.0};
+	m_logs_colors[spdlog::level::info] = {LOG_INFO_COLOR[0], LOG_INFO_COLOR[1], LOG_INFO_COLOR[2], 1.0};
+	m_logs_colors[spdlog::level::warn] = {LOG_WARN_COLOR[0], LOG_WARN_COLOR[1], LOG_WARN_COLOR[2], 1.0};
 	m_logs_colors[spdlog::level::err] = {LOG_ERR_COLOR[0], LOG_ERR_COLOR[1], LOG_ERR_COLOR[2], 1.0};
-	m_logs_colors[spdlog::level::critical] = {
-	  LOG_CRITICAL_COLOR[0], LOG_CRITICAL_COLOR[1], LOG_CRITICAL_COLOR[2], 1.0};
-	m_logs_colors[spdlog::level::off] = {
-	  LOG_DEFAULT_COLOR[0], LOG_DEFAULT_COLOR[1], LOG_DEFAULT_COLOR[2], 1.0};
+	m_logs_colors[spdlog::level::critical] = {LOG_CRITICAL_COLOR[0], LOG_CRITICAL_COLOR[1], LOG_CRITICAL_COLOR[2], 1.0};
+	m_logs_colors[spdlog::level::off] = {LOG_DEFAULT_COLOR[0], LOG_DEFAULT_COLOR[1], LOG_DEFAULT_COLOR[2], 1.0};
+	// clang-format on
 }
 
 void LogViewer::init()
@@ -63,10 +73,51 @@ void LogViewer::show(bool& open)
 		return;
 	}
 
-	ImGui::Checkbox("Scroll to bottom", &m_auto_scroll);
-	if(ImGui::BeginChild("Logs", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar))
+	const ImGuiStyle& style = GImGui->Style;
+	ImGui::PushItemWidth(ImGui::CalcTextSize(spdlog::level::to_c_str(spdlog::level::critical)).x
+	                     + ImGui::GetFrameHeight() + 2 * style.ItemInnerSpacing.x);
+	if(ImGui::BeginCombo("display level", spdlog::level::to_c_str(m_log_level)))
 	{
+		for(spdlog::level::level_enum level: SPDLOG_LEVELS)
+		{
+			const bool selected = (m_log_level == level);
+			if(ImGui::Selectable(spdlog::level::to_c_str(level), selected))
+			{
+				m_log_level = level;
+			}
+			if(selected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+	ImGui::PopItemWidth();
+	ImGui::SameLine();
+	ImGui::VerticalSeparator();
+	ImGui::SameLine();
+	ImGui::Checkbox("Scroll to bottom", &m_auto_scroll);
+	ImGui::SameLine();
+	ImGui::VerticalSeparator();
+	ImGui::SameLine();
+	ImGui::Checkbox("Wrap lines", &m_wrap_lines);
+	//ImGui::Separator();
+
+	if(ImGui::BeginChild("Logs",
+	                     ImVec2(ImGui::GetContentRegionAvailWidth(), 0),
+	                     false,
+	                     m_wrap_lines ? ImGuiWindowFlags_None
+	                                  : ImGuiWindowFlags_HorizontalScrollbar))
+	{
+		if(m_wrap_lines)
+		{
+			ImGui::PushTextWrapPos();
+		}
 		STORED_LOGS->iterate_on_logs([this](const store_sink_mt::store_log& log) {
+			if(log.level < m_log_level)
+			{
+				return true;
+			}
 			if(log.color_range_start < log.color_range_end)
 			{
 				ImGui::TextUnformatted(log.txt.c_str(), log.txt.c_str() + log.color_range_start);
@@ -76,8 +127,15 @@ void LogViewer::show(bool& open)
 				                       log.txt.c_str() + log.color_range_end);
 				ImGui::PopStyleColor();
 				ImGui::SameLine(0, 0);
-				ImGui::TextUnformatted(log.txt.c_str() + log.color_range_end,
-				                       log.txt.c_str() + log.txt.size());
+
+				// cut text for better alignment when line wrapping is enabled
+				const char* pos = log.txt.c_str() + log.color_range_end;
+				ImGui::TextUnformatted(pos, pos + 2);
+				if(pos + 2 < log.txt.c_str() + log.txt.size())
+				{
+					ImGui::SameLine(0, 0);
+					ImGui::TextUnformatted(pos + 2, log.txt.c_str() + log.txt.size());
+				}
 			}
 			else
 			{
@@ -85,6 +143,10 @@ void LogViewer::show(bool& open)
 			}
 			return true;
 		});
+		if(m_wrap_lines)
+		{
+			ImGui::PopTextWrapPos();
+		}
 	}
 	if(m_auto_scroll)
 	{

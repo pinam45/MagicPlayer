@@ -30,9 +30,11 @@ public:
 private:
 	std::unordered_map<spdlog::level::level_enum, ImVec4, spdlog::level::level_hasher>
 	  m_logs_colors;
+	spdlog::level::level_enum m_log_level;
 
 	std::string m_name;
 	bool m_auto_scroll;
+	bool m_wrap_lines;
 
 	std::shared_ptr<spdlog::logger> m_logger;
 };
